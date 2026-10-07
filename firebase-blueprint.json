@@ -1,0 +1,284 @@
+{
+  "entities": {
+    "SolicitudEOR": {
+      "title": "SolicitudEOR",
+      "description": "Request for EOR services from public landing page",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "empresa": { "type": "string" },
+        "pais": { "type": "string" },
+        "servicioRequerido": { "type": "string" },
+        "moneda": { "type": "string" },
+        "cantidadTrabajadores": { "type": "number" },
+        "nombreContacto": { "type": "string" },
+        "correo": { "type": "string" },
+        "telefono": { "type": "string" },
+        "observaciones": { "type": "string" },
+        "estado": { "type": "string" },
+        "fechaRecepcion": { "type": "string" },
+        "notasInternas": { "type": "string" }
+      },
+      "required": ["id", "empresa", "pais", "nombreContacto", "correo"]
+    },
+    "Cliente": {
+      "title": "Cliente",
+      "description": "EOR Client company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "empresa": { "type": "string" },
+        "pais": { "type": "string" },
+        "servicioContratado": { "type": "string" },
+        "moneda": { "type": "string" },
+        "feePorEmpleado": { "type": "number" },
+        "cupoTrabajadores": { "type": "number" },
+        "trabajadoresCargados": { "type": "number" },
+        "trabajadoresPendientes": { "type": "number" },
+        "beneficiosConfigurados": { "type": "array" },
+        "plantillaAsociada": { "type": "string" },
+        "condicionesFacturacion": { "type": "string" },
+        "correoContacto": { "type": "string" },
+        "telefonoContacto": { "type": "string" },
+        "nombreContacto": { "type": "string" },
+        "estado": { "type": "string" },
+        "descuentoVolumen": { "type": "string" },
+        "solicitudVinculadaId": { "type": "string" }
+      },
+      "required": ["id", "empresa", "pais", "correoContacto"]
+    },
+    "Trabajador": {
+      "title": "Trabajador",
+      "description": "Employee managed under EOR",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clienteId": { "type": "string" },
+        "clienteNombre": { "type": "string" },
+        "nombre": { "type": "string" },
+        "correo": { "type": "string" },
+        "puesto": { "type": "string" },
+        "tipoCarga": { "type": "string" },
+        "fechaIngreso": { "type": "string" },
+        "salario": { "type": "number" },
+        "moneda": { "type": "string" },
+        "modalidadTrabajo": { "type": "string" },
+        "beneficiosAplicables": { "type": "array" },
+        "estado": { "type": "string" },
+        "observaciones": { "type": "string" },
+        "pais": { "type": "string" },
+        "ultimaActualizacion": { "type": "string" }
+      },
+      "required": ["id", "clienteId", "nombre", "correo"]
+    },
+    "CargaSocial": {
+      "title": "CargaSocial",
+      "description": "Employer social security cost profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "pais": { "type": "string" },
+        "tipoCarga": { "type": "string" },
+        "responsablePago": { "type": "string" },
+        "porcentaje": { "type": "number" },
+        "vigencia": { "type": "string" },
+        "estado": { "type": "string" },
+        "observaciones": { "type": "string" },
+        "fechaActualizacion": { "type": "string" },
+        "usuarioResponsable": { "type": "string" }
+      },
+      "required": ["id", "pais", "tipoCarga", "porcentaje"]
+    },
+    "Tarifa": {
+      "title": "Tarifa",
+      "description": "Commercial pricing tariff by country",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "pais": { "type": "string" },
+        "servicio": { "type": "string" },
+        "moneda": { "type": "string" },
+        "feeBase": { "type": "number" },
+        "tramosVolumen": { "type": "string" },
+        "descuentos": { "type": "string" },
+        "vigencia": { "type": "string" },
+        "estado": { "type": "string" }
+      },
+      "required": ["id", "pais", "servicio", "feeBase"]
+    },
+    "Beneficio": {
+      "title": "Beneficio",
+      "description": "Custom non-mandatory benefit",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nombre": { "type": "string" },
+        "tipo": { "type": "string" },
+        "costoFijoAprox": { "type": "number" },
+        "moneda": { "type": "string" },
+        "pais": { "type": "string" },
+        "estado": { "type": "string" },
+        "descripcion": { "type": "string" }
+      },
+      "required": ["id", "nombre", "costoFijoAprox", "pais"]
+    },
+    "ContratoRequisito": {
+      "title": "ContratoRequisito",
+      "description": "Checklist and required documents for contracting EOR",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "pais": { "type": "string" },
+        "nombreDocumento": { "type": "string" },
+        "obligatorio": { "type": "boolean" },
+        "descripcion": { "type": "string" },
+        "estado": { "type": "string" }
+      },
+      "required": ["id", "pais", "nombreDocumento"]
+    },
+    "PlantillaCarga": {
+      "title": "PlantillaCarga",
+      "description": "CSV loading template format description",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nombre": { "type": "string" },
+        "pais": { "type": "string" },
+        "servicio": { "type": "string" },
+        "version": { "type": "string" },
+        "fechaVigencia": { "type": "string" },
+        "estado": { "type": "string" },
+        "observaciones": { "type": "string" },
+        "columnas": { "type": "array" }
+      },
+      "required": ["id", "nombre", "pais", "version"]
+    },
+    "User": {
+      "title": "User",
+      "description": "System access profile with authorization level",
+      "type": "object",
+      "properties": {
+        "correo": { "type": "string" },
+        "nombre": { "type": "string" },
+        "rol": { "type": "string" },
+        "clienteId": { "type": "string" },
+        "estado": { "type": "string" },
+        "ultimoAcceso": { "type": "string" },
+        "fechaCreacion": { "type": "string" }
+      },
+      "required": ["correo", "nombre", "rol", "estado"]
+    },
+    "HistorialCargaMasiva": {
+      "title": "HistorialCargaMasiva",
+      "description": "Log record for batch loading operations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clienteId": { "type": "string" },
+        "clienteNombre": { "type": "string" },
+        "fecha": { "type": "string" },
+        "archivoNombre": { "type": "string" },
+        "totalRegistros": { "type": "number" },
+        "registrosValidos": { "type": "number" },
+        "registrosConObservaciones": { "type": "number" },
+        "errores": { "type": "array" },
+        "estado": { "type": "string" },
+        "usuarioResponsable": { "type": "string" }
+      },
+      "required": ["id", "clienteId", "fecha", "estado"]
+    },
+    "Factura": {
+      "title": "Factura",
+      "description": "Client invoice for EOR service and benefits",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clienteId": { "type": "string" },
+        "clienteNombre": { "type": "string" },
+        "pais": { "type": "string" },
+        "moneda": { "type": "string" },
+        "periodo": { "type": "string" },
+        "cantidadTrabajadores": { "type": "number" },
+        "feeAplicado": { "type": "number" },
+        "beneficiosCobrados": { "type": "number" },
+        "descuentos": { "type": "number" },
+        "impuestos": { "type": "number" },
+        "totalFacturado": { "type": "number" },
+        "pagosAplicados": { "type": "number" },
+        "saldoPendiente": { "type": "number" },
+        "estado": { "type": "string" },
+        "fechaEmision": { "type": "string" },
+        "fechaVencimiento": { "type": "string" },
+        "observaciones": { "type": "string" }
+      },
+      "required": ["id", "clienteId", "periodo", "totalFacturado"]
+    },
+    "Pago": {
+      "title": "Pago",
+      "description": "Payment transaction matching an invoice",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "facturaId": { "type": "string" },
+        "clienteId": { "type": "string" },
+        "clienteNombre": { "type": "string" },
+        "monto": { "type": "number" },
+        "moneda": { "type": "string" },
+        "fechaPago": { "type": "string" },
+        "metodo": { "type": "string" },
+        "comprobanteRef": { "type": "string" },
+        "observaciones": { "type": "string" },
+        "estado": { "type": "string" }
+      },
+      "required": ["id", "facturaId", "monto", "fechaPago", "metodo"]
+    },
+    "HistorialLog": {
+      "title": "HistorialLog",
+      "description": "System transaction audit log for compliance",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tabla": { "type": "string" },
+        "registroId": { "type": "string" },
+        "campo": { "type": "string" },
+        "valorAnterior": { "type": "string" },
+        "valorNuevo": { "type": "string" },
+        "motivo": { "type": "string" },
+        "usuario": { "type": "string" },
+        "fecha": { "type": "string" }
+      },
+      "required": ["id", "tabla", "registroId", "campo", "fecha"]
+    },
+    "RoleDefinition": {
+      "title": "RoleDefinition",
+      "description": "Role definitions and menu permissions matrix",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nombre": { "type": "string" },
+        "descripcion": { "type": "string" },
+        "esSistema": { "type": "boolean" },
+        "esAdmin": { "type": "boolean" },
+        "opcionesMenu": { "type": "array" },
+        "fechaCreacion": { "type": "string" }
+      },
+      "required": ["id", "nombre", "opcionesMenu"]
+    }
+  },
+  "firestore": {
+    "solicitudes": { "schema": "SolicitudEOR", "description": "Requests from public portal" },
+    "clientes": { "schema": "Cliente", "description": "Onboarded EOR clients" },
+    "trabajadores": { "schema": "Trabajador", "description": "Employees of EOR clients" },
+    "cargasSociales": { "schema": "CargaSocial", "description": "National social security rates" },
+    "tarifas": { "schema": "Tarifa", "description": "Official pricing and tariffs" },
+    "beneficios": { "schema": "Beneficio", "description": "Benefit items catalog" },
+    "contratos": { "schema": "ContratoRequisito", "description": "Document checklists" },
+    "plantillas": { "schema": "PlantillaCarga", "description": "Employee load schemas" },
+    "usuarios": { "schema": "User", "description": "Authorized administrators and clients" },
+    "historialCargas": { "schema": "HistorialCargaMasiva", "description": "Onboarding operations batch logs" },
+    "facturas": { "schema": "Factura", "description": "Emitted service and payroll invoices" },
+    "pagos": { "schema": "Pago", "description": "Registered customer payments" },
+    "logs": { "schema": "HistorialLog", "description": "Traceability audit trail logs" },
+    "roles": { "schema": "RoleDefinition", "description": "Configured user roles and menu permissions" }
+  }
+}

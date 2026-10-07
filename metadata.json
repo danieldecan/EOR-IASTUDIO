@@ -1,0 +1,6 @@
+{
+  "name": "Quick Hire",
+  "description": "Employer of Record (EOR) service management platform. Handles public EOR service requests, client onboarding, worker registrations (individual/bulk), and billing tracking in Spanish, English, and Portuguese.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
