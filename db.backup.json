@@ -39,6 +39,50 @@
   ],
   "clientes": [
     {
+      "id": "CLI-864",
+      "empresa": "DLR NewCo Limited",
+      "pais": "Guatemala",
+      "servicioContratado": "Employer of Record (EOR)",
+      "moneda": "USD",
+      "feePorEmpleado": 250,
+      "cupoTrabajadores": 1,
+      "trabajadoresCargados": 0,
+      "trabajadoresPendientes": 0,
+      "beneficiosConfigurados": [],
+      "plantillaAsociada": "Layout_GUATEMALA.csv",
+      "condicionesFacturacion": "30 días",
+      "correoContacto": "guadalupe.gonzalez@grupostt.com",
+      "telefonoContacto": "847-494-4025",
+      "nombreContacto": "Esteban Quintero ",
+      "estado": "Activo",
+      "descuentoVolumen": "0",
+      "idioma": "es",
+      "asesorAsignado": "guadalupe-asesor-eor@grupostt.com",
+      "servicio": "EOR",
+      "tipoCliente": "Partners",
+      "proyecto": "DLR NewCo Limited",
+      "razonSocial": "N/A",
+      "cedulaJuridica": "N/A",
+      "direccion": "N/A",
+      "representanteLegal": "Jose Andres Maria Henao",
+      "documentoRepresentante": "79691114",
+      "fechaInicioContrato": "2026-10-15",
+      "posicion": "Representante Legal",
+      "tipoFacturacion": "Internacional",
+      "paisFacturacion": "Panamá",
+      "cuentaBancariaId": "CTA-052",
+      "cuentaBancariaDetalle": "LAFISE - 115000207 (USD) | STT SURAMERICA",
+      "credito": "30 días",
+      "headcountProyecto": 1,
+      "frecuenciaNomina": "Mensual",
+      "fechaInicio": "2026-10-15",
+      "adicionales": "",
+      "adicionalesExtralegales": "",
+      "sociedadContratacion": "ENCUENTRA SU TRABAJO S.A",
+      "supraclienteId": "CLI-876",
+      "jerarquia": "Filial"
+    },
+    {
       "id": "CLI-013",
       "empresa": "PDF Solutions, Inc",
       "pais": "Paraguay",
@@ -63,7 +107,7 @@
       "asesorAsignado": "guadalupe-asesor-eor@grupostt.com",
       "servicio": "EOR",
       "tipoCliente": "Partners",
-      "proyecto": "PAGUS LLC",
+      "proyecto": "PDF Solutions, Inc",
       "razonSocial": "PDF Solutions, Inc",
       "cedulaJuridica": "N/A",
       "direccion": "N/A",
@@ -82,7 +126,15 @@
       "adicionales": "Proyecto para Paraguay de EOR a asignar al SupraCliente Pagus LLC",
       "adicionalesExtralegales": "",
       "sociedadContratacion": "STT Group Paraguay S.A",
-      "supraclienteId": "CLI-876"
+      "supraclienteId": "CLI-876",
+      "estadoServicio": "Servicio liberado",
+      "fechaLiberacion": "2026-10-14T00:14:33.694Z",
+      "usuarioValidador": "guadalupe.gonzalez@grupostt.com",
+      "esRegional": false,
+      "paisesOperacion": [
+        "Paraguay"
+      ],
+      "jerarquia": "Filial"
     },
     {
       "id": "CLI-876",
@@ -128,7 +180,20 @@
       "adicionales": "Creacion de Socio Supra para servicio de EOR ",
       "adicionalesExtralegales": "",
       "sociedadContratacion": "STT GROUP Paraguay S.A",
-      "supraclienteId": "supracliente-eor-peo@grupostt.com"
+      "supraclienteId": "supracliente-eor-peo@grupostt.com",
+      "esRegional": true,
+      "paisesOperacion": [
+        "México",
+        "Colombia",
+        "Panamá",
+        "Honduras",
+        "Paraguay",
+        "Nicaragua",
+        "República Dominicana",
+        "El Salvador",
+        "Guatemala"
+      ],
+      "jerarquia": "Supra"
     }
   ],
   "trabajadores": [],
@@ -432,7 +497,7 @@
         "Paraguay",
         "Venezuela"
       ],
-      "ultimoAcceso": "2026-10-05T19:42:40.839Z"
+      "ultimoAcceso": "2026-10-14T18:45:32.662Z"
     },
     {
       "correo": "daniel.decan@nominasaps.com",
@@ -440,7 +505,7 @@
       "rol": "administrador",
       "estado": "Activo",
       "contrasena": "123456",
-      "ultimoAcceso": "2026-10-07T02:12:55.909Z",
+      "ultimoAcceso": "2026-10-14T19:18:04.462Z",
       "fechaCreacion": "2026-01-01T00:00:00Z"
     },
     {
@@ -453,7 +518,7 @@
       "paisesAsignados": [
         "Todos"
       ],
-      "ultimoAcceso": "2026-10-05T19:22:34.366Z"
+      "ultimoAcceso": "2026-10-14T19:06:05.175Z"
     },
     {
       "correo": "asesor-eor-peo@grupostt.com",
@@ -486,7 +551,7 @@
       "estado": "Activo",
       "fechaCreacion": "2026-10-05T19:04:46.361Z",
       "idioma": "es",
-      "ultimoAcceso": "2026-10-05T19:41:11.504Z",
+      "ultimoAcceso": "2026-10-14T18:56:33.461Z",
       "clienteId": "CLI-876"
     },
     {
@@ -512,17 +577,6 @@
   "facturas": [],
   "pagos": [],
   "logs": [
-    {
-      "id": "LOG-1791339574935",
-      "tabla": "Solicitudes EOR",
-      "registroId": "SOL-4293",
-      "campo": "eliminacion",
-      "valorAnterior": "Empresa Test Eliminar Lead",
-      "valorNuevo": "Eliminado",
-      "motivo": "Test delete lead",
-      "usuario": "administrador-eor-peo@grupostt.com",
-      "fecha": "2026-10-07T02:19:34.935Z"
-    },
     {
       "id": "LOG-1790807786490",
       "tabla": "Usuarios",
@@ -610,6 +664,17 @@
       "motivo": "Nuevo usuario creado por administrador",
       "usuario": "daniel.decan@nominasaps.com",
       "fecha": "2026-09-30T22:38:17.667Z"
+    },
+    {
+      "id": "LOG-1791339574935",
+      "tabla": "Solicitudes EOR",
+      "registroId": "SOL-4293",
+      "campo": "eliminacion",
+      "valorAnterior": "Empresa Test Eliminar Lead",
+      "valorNuevo": "Eliminado",
+      "motivo": "Test delete lead",
+      "usuario": "administrador-eor-peo@grupostt.com",
+      "fecha": "2026-10-07T02:19:34.935Z"
     },
     {
       "id": "LOG-1790807931172",
@@ -4118,138 +4183,6 @@
   ],
   "alertasNotificacion": [
     {
-      "id": "AL-1791339574799-1586",
-      "usuario": "asesor-eor-peo@grupostt.com",
-      "titulo": "Nueva Solicitud EOR Asignada: Empresa Test Eliminar Lead (México) - SOL-4293",
-      "mensaje": "Estimado/a asesor/a, se le ha asignado la nueva solicitud de servicio EOR de la empresa Empresa Test Eliminar Lead en México para 1 trabajadores. Contacto: Guadalupe Asesor Comercial (guadalupe-asesor-eor@grupostt.com). Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.799Z",
-      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
-      "prioridad": "Baja",
-      "enlace": "/solicitudes"
-    },
-    {
-      "id": "AL-1791339574799-7321",
-      "usuario": "guadalupe-admin-eor@grupostt.com",
-      "titulo": "Nueva Solicitud EOR Asignada: Empresa Test Eliminar Lead (México) - SOL-4293",
-      "mensaje": "Estimado/a asesor/a, se le ha asignado la nueva solicitud de servicio EOR de la empresa Empresa Test Eliminar Lead en México para 1 trabajadores. Contacto: Guadalupe Asesor Comercial (guadalupe-asesor-eor@grupostt.com). Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.799Z",
-      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
-      "prioridad": "Baja",
-      "enlace": "/solicitudes"
-    },
-    {
-      "id": "AL-1791339574799-1285",
-      "usuario": "daniel.decan@nominasaps.com",
-      "titulo": "Nueva Solicitud EOR Asignada: Empresa Test Eliminar Lead (México) - SOL-4293",
-      "mensaje": "Estimado/a asesor/a, se le ha asignado la nueva solicitud de servicio EOR de la empresa Empresa Test Eliminar Lead en México para 1 trabajadores. Contacto: Guadalupe Asesor Comercial (guadalupe-asesor-eor@grupostt.com). Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.799Z",
-      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
-      "prioridad": "Baja",
-      "enlace": "/solicitudes"
-    },
-    {
-      "id": "AL-1791339574799-2793",
-      "usuario": "administrador-eor-peo@grupostt.com",
-      "titulo": "Nueva Solicitud EOR Asignada: Empresa Test Eliminar Lead (México) - SOL-4293",
-      "mensaje": "Estimado/a asesor/a, se le ha asignado la nueva solicitud de servicio EOR de la empresa Empresa Test Eliminar Lead en México para 1 trabajadores. Contacto: Guadalupe Asesor Comercial (guadalupe-asesor-eor@grupostt.com). Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.799Z",
-      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
-      "prioridad": "Baja",
-      "enlace": "/solicitudes"
-    },
-    {
-      "id": "AL-1791339574799-2768",
-      "usuario": "guadalupe-asesor-eor@grupostt.com",
-      "titulo": "Nueva Solicitud EOR Asignada: Empresa Test Eliminar Lead (México) - SOL-4293",
-      "mensaje": "Estimado/a asesor/a, se le ha asignado la nueva solicitud de servicio EOR de la empresa Empresa Test Eliminar Lead en México para 1 trabajadores. Contacto: Guadalupe Asesor Comercial (guadalupe-asesor-eor@grupostt.com). Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.799Z",
-      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
-      "prioridad": "Baja",
-      "enlace": "/solicitudes"
-    },
-    {
-      "id": "AL-1791339574787-2028",
-      "usuario": "asesor-eor-peo@grupostt.com",
-      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
-      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.787Z",
-      "evento": "EOR_REQUEST_RECEIVED",
-      "prioridad": "Media",
-      "enlace": "/solicitudes"
-    },
-    {
-      "id": "AL-1791339574787-5933",
-      "usuario": "guadalupe-admin-eor@grupostt.com",
-      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
-      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.787Z",
-      "evento": "EOR_REQUEST_RECEIVED",
-      "prioridad": "Media",
-      "enlace": "/solicitudes"
-    },
-    {
-      "id": "AL-1791339574787-6297",
-      "usuario": "daniel.decan@nominasaps.com",
-      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
-      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.787Z",
-      "evento": "EOR_REQUEST_RECEIVED",
-      "prioridad": "Media",
-      "enlace": "/solicitudes"
-    },
-    {
-      "id": "AL-1791339574787-4451",
-      "usuario": "administrador-eor-peo@grupostt.com",
-      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
-      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.787Z",
-      "evento": "EOR_REQUEST_RECEIVED",
-      "prioridad": "Media",
-      "enlace": "/solicitudes"
-    },
-    {
-      "id": "AL-1791339574787-0155",
-      "usuario": "guadalupe-asesor-eor@grupostt.com",
-      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
-      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.787Z",
-      "evento": "EOR_REQUEST_RECEIVED",
-      "prioridad": "Media",
-      "enlace": "/solicitudes"
-    },
-    {
-      "id": "AL-1791339574786-4264",
-      "usuario": "test@lead.com",
-      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
-      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
-      "leida": false,
-      "leido": false,
-      "fecha": "2026-10-07T02:19:34.787Z",
-      "evento": "EOR_REQUEST_RECEIVED",
-      "prioridad": "Media",
-      "enlace": "/solicitudes"
-    },
-    {
       "id": "AL-1790808364141-7236",
       "usuario": "guadalupe-admin-eor@grupostt.com",
       "titulo": "Nueva Solicitud EOR Asignada: PAGUS LLC (Paraguay) - SOL-3939",
@@ -4281,6 +4214,18 @@
       "leida": false,
       "leido": false,
       "fecha": "2026-09-30T22:29:58.164Z",
+      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
+      "prioridad": "Baja",
+      "enlace": "/solicitudes"
+    },
+    {
+      "id": "AL-1791339574799-7321",
+      "usuario": "guadalupe-admin-eor@grupostt.com",
+      "titulo": "Nueva Solicitud EOR Asignada: Empresa Test Eliminar Lead (México) - SOL-4293",
+      "mensaje": "Estimado/a asesor/a, se le ha asignado la nueva solicitud de servicio EOR de la empresa Empresa Test Eliminar Lead en México para 1 trabajadores. Contacto: Guadalupe Asesor Comercial (guadalupe-asesor-eor@grupostt.com). Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.799Z",
       "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
       "prioridad": "Baja",
       "enlace": "/solicitudes"
@@ -4322,6 +4267,18 @@
       "enlace": "/solicitudes"
     },
     {
+      "id": "AL-1791339574799-2793",
+      "usuario": "administrador-eor-peo@grupostt.com",
+      "titulo": "Nueva Solicitud EOR Asignada: Empresa Test Eliminar Lead (México) - SOL-4293",
+      "mensaje": "Estimado/a asesor/a, se le ha asignado la nueva solicitud de servicio EOR de la empresa Empresa Test Eliminar Lead en México para 1 trabajadores. Contacto: Guadalupe Asesor Comercial (guadalupe-asesor-eor@grupostt.com). Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.799Z",
+      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
+      "prioridad": "Baja",
+      "enlace": "/solicitudes"
+    },
+    {
       "id": "AL-1790808364141-8637",
       "usuario": "guadalupe-asesor-eor@grupostt.com",
       "titulo": "Nueva Solicitud EOR Asignada: PAGUS LLC (Paraguay) - SOL-3939",
@@ -4329,6 +4286,30 @@
       "leida": false,
       "leido": false,
       "fecha": "2026-09-30T22:46:04.141Z",
+      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
+      "prioridad": "Baja",
+      "enlace": "/solicitudes"
+    },
+    {
+      "id": "AL-1791339574787-6297",
+      "usuario": "daniel.decan@nominasaps.com",
+      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
+      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.787Z",
+      "evento": "EOR_REQUEST_RECEIVED",
+      "prioridad": "Media",
+      "enlace": "/solicitudes"
+    },
+    {
+      "id": "AL-1791339574799-2768",
+      "usuario": "guadalupe-asesor-eor@grupostt.com",
+      "titulo": "Nueva Solicitud EOR Asignada: Empresa Test Eliminar Lead (México) - SOL-4293",
+      "mensaje": "Estimado/a asesor/a, se le ha asignado la nueva solicitud de servicio EOR de la empresa Empresa Test Eliminar Lead en México para 1 trabajadores. Contacto: Guadalupe Asesor Comercial (guadalupe-asesor-eor@grupostt.com). Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.799Z",
       "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
       "prioridad": "Baja",
       "enlace": "/solicitudes"
@@ -4370,6 +4351,30 @@
       "enlace": "/"
     },
     {
+      "id": "AL-1791339574786-4264",
+      "usuario": "test@lead.com",
+      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
+      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.787Z",
+      "evento": "EOR_REQUEST_RECEIVED",
+      "prioridad": "Media",
+      "enlace": "/solicitudes"
+    },
+    {
+      "id": "AL-1791339574787-0155",
+      "usuario": "guadalupe-asesor-eor@grupostt.com",
+      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
+      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.787Z",
+      "evento": "EOR_REQUEST_RECEIVED",
+      "prioridad": "Media",
+      "enlace": "/solicitudes"
+    },
+    {
       "id": "AL-1791228730714-0367",
       "usuario": "asesor-eor-peo@grupostt.com",
       "titulo": "Nueva Solicitud EOR Asignada: PDF Solutions, Inc (Paraguay) - SOL-0629",
@@ -4403,6 +4408,18 @@
       "fecha": "2026-10-05T19:32:10.707Z",
       "evento": "EOR_REQUEST_RECEIVED",
       "prioridad": "Media",
+      "enlace": "/solicitudes"
+    },
+    {
+      "id": "AL-1791339574799-1586",
+      "usuario": "asesor-eor-peo@grupostt.com",
+      "titulo": "Nueva Solicitud EOR Asignada: Empresa Test Eliminar Lead (México) - SOL-4293",
+      "mensaje": "Estimado/a asesor/a, se le ha asignado la nueva solicitud de servicio EOR de la empresa Empresa Test Eliminar Lead en México para 1 trabajadores. Contacto: Guadalupe Asesor Comercial (guadalupe-asesor-eor@grupostt.com). Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.799Z",
+      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
+      "prioridad": "Baja",
       "enlace": "/solicitudes"
     },
     {
@@ -4634,6 +4651,18 @@
       "enlace": "/"
     },
     {
+      "id": "AL-1791339574799-1285",
+      "usuario": "daniel.decan@nominasaps.com",
+      "titulo": "Nueva Solicitud EOR Asignada: Empresa Test Eliminar Lead (México) - SOL-4293",
+      "mensaje": "Estimado/a asesor/a, se le ha asignado la nueva solicitud de servicio EOR de la empresa Empresa Test Eliminar Lead en México para 1 trabajadores. Contacto: Guadalupe Asesor Comercial (guadalupe-asesor-eor@grupostt.com). Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.799Z",
+      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
+      "prioridad": "Baja",
+      "enlace": "/solicitudes"
+    },
+    {
       "id": "AL-1790807398152-0877",
       "usuario": "administrador-eor-peo@grupostt.com",
       "titulo": "Solicitud EOR Recibida - Empresa Prueba Lead (Chile)",
@@ -4641,6 +4670,18 @@
       "leida": false,
       "leido": false,
       "fecha": "2026-09-30T22:29:58.152Z",
+      "evento": "EOR_REQUEST_RECEIVED",
+      "prioridad": "Media",
+      "enlace": "/solicitudes"
+    },
+    {
+      "id": "AL-1791339574787-2028",
+      "usuario": "asesor-eor-peo@grupostt.com",
+      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
+      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.787Z",
       "evento": "EOR_REQUEST_RECEIVED",
       "prioridad": "Media",
       "enlace": "/solicitudes"
@@ -4677,6 +4718,18 @@
       "leida": false,
       "leido": false,
       "fecha": "2026-10-05T19:32:10.707Z",
+      "evento": "EOR_REQUEST_RECEIVED",
+      "prioridad": "Media",
+      "enlace": "/solicitudes"
+    },
+    {
+      "id": "AL-1791339574787-5933",
+      "usuario": "guadalupe-admin-eor@grupostt.com",
+      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
+      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.787Z",
       "evento": "EOR_REQUEST_RECEIVED",
       "prioridad": "Media",
       "enlace": "/solicitudes"
@@ -4727,6 +4780,18 @@
       "fecha": "2026-09-30T22:29:58.164Z",
       "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
       "prioridad": "Baja",
+      "enlace": "/solicitudes"
+    },
+    {
+      "id": "AL-1791339574787-4451",
+      "usuario": "administrador-eor-peo@grupostt.com",
+      "titulo": "Solicitud EOR Recibida - Empresa Test Eliminar Lead (México)",
+      "mensaje": "Estimado/a Test Lead, hemos recibido su solicitud de servicio EOR para 1 trabajadores en México. Número de solicitud: SOL-4293.",
+      "leida": false,
+      "leido": false,
+      "fecha": "2026-10-07T02:19:34.787Z",
+      "evento": "EOR_REQUEST_RECEIVED",
+      "prioridad": "Media",
       "enlace": "/solicitudes"
     },
     {
@@ -6330,38 +6395,6 @@
   ],
   "historialNotificaciones": [
     {
-      "id": "NOT-1791339574799-2939",
-      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
-      "plantillaId": "PL-EOR_REQUEST_ADVISOR_NOTIFIED-ES",
-      "canal": "ambos",
-      "destinatario": "Guadalupe Asesor Comercial",
-      "correoDestinatario": "guadalupe-asesor-eor@grupostt.com",
-      "remitente": "Quick Hire LATAM - Alertas STT",
-      "correoRemitente": "alertas@grupostt.com",
-      "entidadRelacionada": "solicitud",
-      "entidadId": "SOL-4293",
-      "fecha": "2026-10-07T02:19:34.799Z",
-      "estado": "Enviada",
-      "idioma": "es",
-      "usuarioDisparador": "Sistema"
-    },
-    {
-      "id": "NOT-1791339574786-3564",
-      "evento": "EOR_REQUEST_RECEIVED",
-      "plantillaId": "PL-EOR_REQUEST_RECEIVED-ES",
-      "canal": "ambos",
-      "destinatario": "Test Lead",
-      "correoDestinatario": "test@lead.com",
-      "remitente": "Quick Hire LATAM - Alertas STT",
-      "correoRemitente": "alertas@grupostt.com",
-      "entidadRelacionada": "solicitud",
-      "entidadId": "SOL-4293",
-      "fecha": "2026-10-07T02:19:34.786Z",
-      "estado": "Enviada",
-      "idioma": "es",
-      "usuarioDisparador": "Sistema"
-    },
-    {
       "id": "NOT-1791227789603-4908",
       "evento": "USER_CREATED",
       "plantillaId": "PL-USER_CREATED-ES",
@@ -6471,6 +6504,22 @@
       "usuarioDisparador": "Sistema"
     },
     {
+      "id": "NOT-1791339574799-2939",
+      "evento": "EOR_REQUEST_ADVISOR_NOTIFIED",
+      "plantillaId": "PL-EOR_REQUEST_ADVISOR_NOTIFIED-ES",
+      "canal": "ambos",
+      "destinatario": "Guadalupe Asesor Comercial",
+      "correoDestinatario": "guadalupe-asesor-eor@grupostt.com",
+      "remitente": "Quick Hire LATAM - Alertas STT",
+      "correoRemitente": "alertas@grupostt.com",
+      "entidadRelacionada": "solicitud",
+      "entidadId": "SOL-4293",
+      "fecha": "2026-10-07T02:19:34.799Z",
+      "estado": "Enviada",
+      "idioma": "es",
+      "usuarioDisparador": "Sistema"
+    },
+    {
       "id": "NOT-1790808364133-9207",
       "evento": "EOR_REQUEST_RECEIVED",
       "plantillaId": "PL-EOR_REQUEST_RECEIVED-ES",
@@ -6546,6 +6595,22 @@
       "estado": "Enviada",
       "idioma": "es",
       "usuarioDisparador": "guadalupe-admin-eor@grupostt.com"
+    },
+    {
+      "id": "NOT-1791339574786-3564",
+      "evento": "EOR_REQUEST_RECEIVED",
+      "plantillaId": "PL-EOR_REQUEST_RECEIVED-ES",
+      "canal": "ambos",
+      "destinatario": "Test Lead",
+      "correoDestinatario": "test@lead.com",
+      "remitente": "Quick Hire LATAM - Alertas STT",
+      "correoRemitente": "alertas@grupostt.com",
+      "entidadRelacionada": "solicitud",
+      "entidadId": "SOL-4293",
+      "fecha": "2026-10-07T02:19:34.786Z",
+      "estado": "Enviada",
+      "idioma": "es",
+      "usuarioDisparador": "Sistema"
     },
     {
       "id": "NOT-1791228730714-4188",
@@ -6822,22 +6887,6 @@
       "enlace": "/solicitudes?id=SOL-4293"
     },
     {
-      "id": "AO-solicitud-SOL-4293-PENDIENTE",
-      "tipoAlerta": "Preventiva",
-      "prioridad": "Alta",
-      "estado": "Nueva",
-      "entidadRelacionada": "solicitud",
-      "entidadId": "SOL-4293",
-      "clienteNombre": "Empresa Test Eliminar Lead",
-      "pais": "México",
-      "usuarioResponsable": "guadalupe-asesor-eor@grupostt.com",
-      "rolResponsable": "administrador",
-      "fechaCreacion": "2026-10-07T02:19:34.779Z",
-      "descripcionCorta": "Solicitud EOR recibida para Empresa Test Eliminar Lead (México) está pendiente de gestión comercial inicial.",
-      "accionRequerida": "Asignar un asesor comercial y realizar revisión inicial de requisitos.",
-      "enlace": "/solicitudes?id=SOL-4293"
-    },
-    {
       "id": "AO-solicitud-SOL-8027-SIN_SEGUIMIENTO",
       "tipoAlerta": "Preventiva",
       "prioridad": "Media",
@@ -6991,6 +7040,22 @@
       "enlace": "/solicitudes?id=SOL-6564"
     },
     {
+      "id": "AO-solicitud-SOL-4293-PENDIENTE",
+      "tipoAlerta": "Preventiva",
+      "prioridad": "Alta",
+      "estado": "Nueva",
+      "entidadRelacionada": "solicitud",
+      "entidadId": "SOL-4293",
+      "clienteNombre": "Empresa Test Eliminar Lead",
+      "pais": "México",
+      "usuarioResponsable": "guadalupe-asesor-eor@grupostt.com",
+      "rolResponsable": "administrador",
+      "fechaCreacion": "2026-10-07T02:19:34.779Z",
+      "descripcionCorta": "Solicitud EOR recibida para Empresa Test Eliminar Lead (México) está pendiente de gestión comercial inicial.",
+      "accionRequerida": "Asignar un asesor comercial y realizar revisión inicial de requisitos.",
+      "enlace": "/solicitudes?id=SOL-4293"
+    },
+    {
       "id": "AO-solicitud-SOL-0629-PENDIENTE",
       "tipoAlerta": "Preventiva",
       "prioridad": "Alta",
@@ -7060,6 +7125,14 @@
       "observaciones": "Alerta operativa creada por el sistema para la entidad solicitud #SOL-0629."
     },
     {
+      "id": "AOH-1791339574780-492",
+      "alertaId": "AO-solicitud-SOL-4293-SIN_SEGUIMIENTO",
+      "accion": "Creación de alerta",
+      "usuarioResponsable": "Sistema",
+      "fechaHora": "2026-10-07T02:19:34.779Z",
+      "observaciones": "Alerta operativa creada por el sistema para la entidad solicitud #SOL-4293."
+    },
+    {
       "id": "AOH-1790807398146-603",
       "alertaId": "AO-solicitud-SOL-8027-PENDIENTE",
       "accion": "Creación de alerta",
@@ -7082,6 +7155,14 @@
       "usuarioResponsable": "Sistema",
       "fechaHora": "2026-10-05T20:03:44.039Z",
       "observaciones": "Alerta resuelta automáticamente por el sistema: La solicitud ha cambiado de estado a Cliente creado."
+    },
+    {
+      "id": "AOH-1791339574780-103",
+      "alertaId": "AO-solicitud-SOL-4293-PENDIENTE",
+      "accion": "Creación de alerta",
+      "usuarioResponsable": "Sistema",
+      "fechaHora": "2026-10-07T02:19:34.779Z",
+      "observaciones": "Alerta operativa creada por el sistema para la entidad solicitud #SOL-4293."
     },
     {
       "id": "AOH-1790807398146-167",
@@ -7130,61 +7211,9 @@
       "usuarioResponsable": "Sistema",
       "fechaHora": "2026-08-12T17:05:41.111Z",
       "observaciones": "Alerta operativa creada por el sistema para la entidad solicitud #SOL-6564."
-    },
-    {
-      "id": "AOH-1791339574780-103",
-      "alertaId": "AO-solicitud-SOL-4293-PENDIENTE",
-      "accion": "Creación de alerta",
-      "usuarioResponsable": "Sistema",
-      "fechaHora": "2026-10-07T02:19:34.779Z",
-      "observaciones": "Alerta operativa creada por el sistema para la entidad solicitud #SOL-4293."
-    },
-    {
-      "id": "AOH-1791339574780-492",
-      "alertaId": "AO-solicitud-SOL-4293-SIN_SEGUIMIENTO",
-      "accion": "Creación de alerta",
-      "usuarioResponsable": "Sistema",
-      "fechaHora": "2026-10-07T02:19:34.779Z",
-      "observaciones": "Alerta operativa creada por el sistema para la entidad solicitud #SOL-4293."
     }
   ],
   "auditLogs": [
-    {
-      "id": "AUDIT-1791339574944-0598",
-      "usuario": "administrador-eor-peo@grupostt.com",
-      "rol": "administrador",
-      "fechaHora": "2026-10-07T02:19:34.944Z",
-      "modulo": "Configuración general",
-      "accion": "eliminacion",
-      "entidadAfectada": "Solicitudes EOR",
-      "entidadId": "SOL-4293",
-      "estadoAnterior": "Empresa Test Eliminar Lead",
-      "estadoNuevo": "Eliminado",
-      "valorAnterior": "Empresa Test Eliminar Lead",
-      "valorNuevo": "Eliminado",
-      "motivoObservacion": "Test delete lead",
-      "identificadorTecnico": "Servidor (Internal)",
-      "resultado": "exitoso",
-      "mensajeError": ""
-    },
-    {
-      "id": "AUDIT-1791339574819-2264",
-      "usuario": "daniel.decan@nominasaps.com",
-      "rol": "administrador",
-      "fechaHora": "2026-10-07T02:19:34.819Z",
-      "modulo": "Solicitudes EOR",
-      "accion": "Eliminar",
-      "entidadAfectada": "Solicitudes EOR",
-      "entidadId": "",
-      "estadoAnterior": "",
-      "estadoNuevo": "",
-      "valorAnterior": "",
-      "valorNuevo": "",
-      "motivoObservacion": "Operación de modificación en el módulo Solicitudes EOR",
-      "identificadorTecnico": "127.0.0.1",
-      "resultado": "exitoso",
-      "mensajeError": ""
-    },
     {
       "id": "AUDIT-1790809542643-0555",
       "usuario": "guadalupe-admin-eor@grupostt.com",
@@ -7420,6 +7449,24 @@
       "mensajeError": "Acceso no autorizado para Prospecto"
     },
     {
+      "id": "AUDIT-1791937504313-9011",
+      "usuario": "guadalupe-admin-eor@grupostt.com",
+      "rol": "administrador",
+      "fechaHora": "2026-10-14T00:25:04.313Z",
+      "modulo": "Clientes",
+      "accion": "Editar",
+      "entidadAfectada": "Clientes",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Clientes",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "exitoso",
+      "mensajeError": ""
+    },
+    {
       "id": "AUDIT-1790956767109-3627",
       "usuario": "alertas@grupostt.com",
       "rol": "prospecto",
@@ -7618,6 +7665,24 @@
       "mensajeError": ""
     },
     {
+      "id": "AUDIT-1791938561339-6834",
+      "usuario": "alertas@grupostt.com",
+      "rol": "prospecto",
+      "fechaHora": "2026-10-14T00:42:41.339Z",
+      "modulo": "Trabajadores",
+      "accion": "Ver",
+      "entidadAfectada": "Trabajadores",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso no autorizado para Prospecto"
+    },
+    {
       "id": "AUDIT-1791327430502-6384",
       "usuario": "daniel.decan@nominasaps.com",
       "rol": "administrador",
@@ -7634,6 +7699,42 @@
       "identificadorTecnico": "190.171.112.149",
       "resultado": "exitoso",
       "mensajeError": ""
+    },
+    {
+      "id": "AUDIT-1792003492809-5614",
+      "usuario": "alertas@grupostt.com",
+      "rol": "prospecto",
+      "fechaHora": "2026-10-14T18:44:52.809Z",
+      "modulo": "Usuarios",
+      "accion": "Ver",
+      "entidadAfectada": "Usuarios",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso no autorizado para Prospecto"
+    },
+    {
+      "id": "AUDIT-1791936746261-3046",
+      "usuario": "guadalupe-asesor-eor@grupostt.com",
+      "rol": "asesor_comercial",
+      "fechaHora": "2026-10-14T00:12:26.261Z",
+      "modulo": "Usuarios",
+      "accion": "Ver",
+      "entidadAfectada": "Usuarios",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso denegado: El módulo 'Usuarios' no está habilitado para el rol 'Asesor Comercial'"
     },
     {
       "id": "AUDIT-1791228563421-9833",
@@ -7670,6 +7771,42 @@
       "identificadorTecnico": "200.229.6.29",
       "resultado": "bloqueado",
       "mensajeError": "La administración de este módulo global está restringida para este rol"
+    },
+    {
+      "id": "AUDIT-1792003533041-7989",
+      "usuario": "guadalupe-asesor-eor@grupostt.com",
+      "rol": "asesor_comercial",
+      "fechaHora": "2026-10-14T18:45:33.041Z",
+      "modulo": "Configuración general",
+      "accion": "Ver",
+      "entidadAfectada": "Configuración general",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "La administración de este módulo global está restringida para este rol"
+    },
+    {
+      "id": "AUDIT-1791937042197-0922",
+      "usuario": "guadalupe-asesor-eor@grupostt.com",
+      "rol": "asesor_comercial",
+      "fechaHora": "2026-10-14T00:17:22.197Z",
+      "modulo": "Usuarios",
+      "accion": "Ver",
+      "entidadAfectada": "Usuarios",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso denegado: El módulo 'Usuarios' no está habilitado para el rol 'Asesor Comercial'"
     },
     {
       "id": "AUDIT-1791228045802-3852",
@@ -7744,6 +7881,24 @@
       "mensajeError": "Acceso no autorizado para Prospecto"
     },
     {
+      "id": "AUDIT-1792003232715-5753",
+      "usuario": "guadalupe.gonzalez@grupostt.com",
+      "rol": "supracliente",
+      "fechaHora": "2026-10-14T18:40:32.715Z",
+      "modulo": "Configuración general",
+      "accion": "Crear",
+      "entidadAfectada": "Configuración general",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Configuración general",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "exitoso",
+      "mensajeError": ""
+    },
+    {
       "id": "AUDIT-1790956380151-4848",
       "usuario": "alertas@grupostt.com",
       "rol": "prospecto",
@@ -7778,6 +7933,24 @@
       "identificadorTecnico": "200.229.6.29",
       "resultado": "bloqueado",
       "mensajeError": "La administración de este módulo global está restringida para este rol"
+    },
+    {
+      "id": "AUDIT-1791938560421-9855",
+      "usuario": "guadalupe-admin-eor@grupostt.com",
+      "rol": "administrador",
+      "fechaHora": "2026-10-14T00:42:40.421Z",
+      "modulo": "Configuración general",
+      "accion": "Crear",
+      "entidadAfectada": "Configuración general",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Configuración general",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "exitoso",
+      "mensajeError": ""
     },
     {
       "id": "AUDIT-1790808064460-7715",
@@ -7816,6 +7989,24 @@
       "mensajeError": "Acceso denegado: El módulo 'Usuarios' no está habilitado para el rol 'Asesor Comercial'"
     },
     {
+      "id": "AUDIT-1791937145331-9182",
+      "usuario": "guadalupe-asesor-eor@grupostt.com",
+      "rol": "asesor_comercial",
+      "fechaHora": "2026-10-14T00:19:05.331Z",
+      "modulo": "Cargas sociales",
+      "accion": "Ver",
+      "entidadAfectada": "Cargas sociales",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso denegado: El módulo 'Cargas sociales' no está habilitado para el rol 'Asesor Comercial'"
+    },
+    {
       "id": "AUDIT-1790807768988-9649",
       "usuario": "daniel.decan@nominasaps.com",
       "rol": "administrador",
@@ -7850,6 +8041,24 @@
       "identificadorTecnico": "200.229.6.29",
       "resultado": "exitoso",
       "mensajeError": ""
+    },
+    {
+      "id": "AUDIT-1791412783611-0125",
+      "usuario": "alertas@grupostt.com",
+      "rol": "prospecto",
+      "fechaHora": "2026-10-07T22:39:43.611Z",
+      "modulo": "Clientes",
+      "accion": "Ver",
+      "entidadAfectada": "Clientes",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "127.0.0.1",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso no autorizado para Prospecto"
     },
     {
       "id": "AUDIT-1791228050647-5581",
@@ -7960,6 +8169,42 @@
       "mensajeError": ""
     },
     {
+      "id": "AUDIT-1791936719739-9474",
+      "usuario": "guadalupe-admin-eor@grupostt.com",
+      "rol": "administrador",
+      "fechaHora": "2026-10-14T00:11:59.739Z",
+      "modulo": "Clientes",
+      "accion": "Editar",
+      "entidadAfectada": "Clientes",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Clientes",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "exitoso",
+      "mensajeError": ""
+    },
+    {
+      "id": "AUDIT-1792003398187-1164",
+      "usuario": "guadalupe-asesor-eor@grupostt.com",
+      "rol": "asesor_comercial",
+      "fechaHora": "2026-10-14T18:43:18.187Z",
+      "modulo": "Configuración general",
+      "accion": "Ver",
+      "entidadAfectada": "Configuración general",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "La administración de este módulo global está restringida para este rol"
+    },
+    {
       "id": "AUDIT-1791228045791-7562",
       "usuario": "guadalupe-asesor-eor@grupostt.com",
       "rol": "asesor_comercial",
@@ -7976,6 +8221,24 @@
       "identificadorTecnico": "200.229.6.29",
       "resultado": "bloqueado",
       "mensajeError": "Acceso denegado: El módulo 'Usuarios' no está habilitado para el rol 'Asesor Comercial'"
+    },
+    {
+      "id": "AUDIT-1791938564676-8256",
+      "usuario": "alertas@grupostt.com",
+      "rol": "prospecto",
+      "fechaHora": "2026-10-14T00:42:44.676Z",
+      "modulo": "Trabajadores",
+      "accion": "Ver",
+      "entidadAfectada": "Trabajadores",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso no autorizado para Prospecto"
     },
     {
       "id": "AUDIT-1790807811213-1094",
@@ -8064,6 +8327,24 @@
       "valorNuevo": "",
       "motivoObservacion": "Operación de modificación en el módulo Clientes",
       "identificadorTecnico": "200.229.6.29",
+      "resultado": "exitoso",
+      "mensajeError": ""
+    },
+    {
+      "id": "AUDIT-1791936873679-5138",
+      "usuario": "guadalupe.gonzalez@grupostt.com",
+      "rol": "supracliente",
+      "fechaHora": "2026-10-14T00:14:33.680Z",
+      "modulo": "Clientes",
+      "accion": "Crear",
+      "entidadAfectada": "Clientes",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Clientes",
+      "identificadorTecnico": "190.113.103.156",
       "resultado": "exitoso",
       "mensajeError": ""
     },
@@ -8356,6 +8637,24 @@
       "mensajeError": ""
     },
     {
+      "id": "AUDIT-1791938362854-8402",
+      "usuario": "guadalupe-admin-eor@grupostt.com",
+      "rol": "administrador",
+      "fechaHora": "2026-10-14T00:39:22.854Z",
+      "modulo": "Clientes",
+      "accion": "Crear",
+      "entidadAfectada": "Clientes",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Clientes",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "exitoso",
+      "mensajeError": ""
+    },
+    {
       "id": "AUDIT-1791229188005-0281",
       "usuario": "guadalupe-admin-eor@grupostt.com",
       "rol": "administrador",
@@ -8390,6 +8689,24 @@
       "identificadorTecnico": "200.229.6.29",
       "resultado": "bloqueado",
       "mensajeError": "Acceso denegado: El módulo 'Facturación y pagos' no está habilitado para el rol 'Asesor Comercial'"
+    },
+    {
+      "id": "AUDIT-1792003819205-8122",
+      "usuario": "alertas@grupostt.com",
+      "rol": "prospecto",
+      "fechaHora": "2026-10-14T18:50:19.205Z",
+      "modulo": "Usuarios",
+      "accion": "Ver",
+      "entidadAfectada": "Usuarios",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso no autorizado para Prospecto"
     },
     {
       "id": "AUDIT-1791228055676-4057",
@@ -8572,6 +8889,24 @@
       "mensajeError": "Acceso no autorizado para Prospecto"
     },
     {
+      "id": "AUDIT-1791937717117-6114",
+      "usuario": "alertas@grupostt.com",
+      "rol": "prospecto",
+      "fechaHora": "2026-10-14T00:28:37.117Z",
+      "modulo": "Trabajadores",
+      "accion": "Ver",
+      "entidadAfectada": "Trabajadores",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso no autorizado para Prospecto"
+    },
+    {
       "id": "AUDIT-1790808988861-5856",
       "usuario": "alertas@grupostt.com",
       "rol": "prospecto",
@@ -8624,6 +8959,24 @@
       "identificadorTecnico": "127.0.0.1",
       "resultado": "bloqueado",
       "mensajeError": "Acceso no autorizado para Prospecto"
+    },
+    {
+      "id": "AUDIT-1792003274170-0804",
+      "usuario": "guadalupe-asesor-eor@grupostt.com",
+      "rol": "asesor_comercial",
+      "fechaHora": "2026-10-14T18:41:14.170Z",
+      "modulo": "Usuarios",
+      "accion": "Ver",
+      "entidadAfectada": "Usuarios",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso denegado: El módulo 'Usuarios' no está habilitado para el rol 'Asesor Comercial'"
     },
     {
       "id": "AUDIT-1790865542623-7494",
@@ -9076,6 +9429,42 @@
       "mensajeError": "Acceso no autorizado para Prospecto"
     },
     {
+      "id": "AUDIT-1791340795616-7448",
+      "usuario": "daniel.decan@nominasaps.com",
+      "rol": "administrador",
+      "fechaHora": "2026-10-07T02:39:55.616Z",
+      "modulo": "Usuarios",
+      "accion": "Editar",
+      "entidadAfectada": "Usuarios",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Usuarios",
+      "identificadorTecnico": "190.171.112.149",
+      "resultado": "exitoso",
+      "mensajeError": ""
+    },
+    {
+      "id": "AUDIT-1791936900901-9925",
+      "usuario": "alertas@grupostt.com",
+      "rol": "prospecto",
+      "fechaHora": "2026-10-14T00:15:00.901Z",
+      "modulo": "Alertas operativas",
+      "accion": "Ver",
+      "entidadAfectada": "Alertas operativas",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso no autorizado para Prospecto"
+    },
+    {
       "id": "AUDIT-1791229238274-6925",
       "usuario": "alertas@grupostt.com",
       "rol": "prospecto",
@@ -9238,6 +9627,24 @@
       "mensajeError": "Acceso no autorizado para Prospecto"
     },
     {
+      "id": "AUDIT-1792003217395-0472",
+      "usuario": "alertas@grupostt.com",
+      "rol": "prospecto",
+      "fechaHora": "2026-10-14T18:40:17.395Z",
+      "modulo": "Alertas operativas",
+      "accion": "Ver",
+      "entidadAfectada": "Alertas operativas",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso no autorizado para Prospecto"
+    },
+    {
       "id": "AUDIT-1791227789575-7301",
       "usuario": "daniel.decan@nominasaps.com",
       "rol": "administrador",
@@ -9326,6 +9733,24 @@
       "identificadorTecnico": "190.171.112.149",
       "resultado": "bloqueado",
       "mensajeError": "La administración de este módulo global está restringida para este rol"
+    },
+    {
+      "id": "AUDIT-1791938551657-2353",
+      "usuario": "guadalupe-admin-eor@grupostt.com",
+      "rol": "administrador",
+      "fechaHora": "2026-10-14T00:42:31.657Z",
+      "modulo": "Configuración general",
+      "accion": "Crear",
+      "entidadAfectada": "Configuración general",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Configuración general",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "exitoso",
+      "mensajeError": ""
     },
     {
       "id": "AUDIT-1786554341307-3657",
@@ -9490,6 +9915,24 @@
       "mensajeError": ""
     },
     {
+      "id": "AUDIT-1791938563734-3091",
+      "usuario": "guadalupe-admin-eor@grupostt.com",
+      "rol": "administrador",
+      "fechaHora": "2026-10-14T00:42:43.734Z",
+      "modulo": "Configuración general",
+      "accion": "Crear",
+      "entidadAfectada": "Configuración general",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Configuración general",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "exitoso",
+      "mensajeError": ""
+    },
+    {
       "id": "AUDIT-1790866036731-7205",
       "usuario": "alertas@grupostt.com",
       "rol": "prospecto",
@@ -9506,6 +9949,24 @@
       "identificadorTecnico": "127.0.0.1",
       "resultado": "bloqueado",
       "mensajeError": "Acceso no autorizado para Prospecto"
+    },
+    {
+      "id": "AUDIT-1791936746108-1605",
+      "usuario": "guadalupe-asesor-eor@grupostt.com",
+      "rol": "asesor_comercial",
+      "fechaHora": "2026-10-14T00:12:26.108Z",
+      "modulo": "Configuración general",
+      "accion": "Ver",
+      "entidadAfectada": "Configuración general",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "La administración de este módulo global está restringida para este rol"
     },
     {
       "id": "AUDIT-1791228068059-8863",
@@ -9598,6 +10059,24 @@
       "mensajeError": "Acceso no autorizado para Prospecto"
     },
     {
+      "id": "AUDIT-1791339574944-0598",
+      "usuario": "administrador-eor-peo@grupostt.com",
+      "rol": "administrador",
+      "fechaHora": "2026-10-07T02:19:34.944Z",
+      "modulo": "Configuración general",
+      "accion": "eliminacion",
+      "entidadAfectada": "Solicitudes EOR",
+      "entidadId": "SOL-4293",
+      "estadoAnterior": "Empresa Test Eliminar Lead",
+      "estadoNuevo": "Eliminado",
+      "valorAnterior": "Empresa Test Eliminar Lead",
+      "valorNuevo": "Eliminado",
+      "motivoObservacion": "Test delete lead",
+      "identificadorTecnico": "Servidor (Internal)",
+      "resultado": "exitoso",
+      "mensajeError": ""
+    },
+    {
       "id": "AUDIT-1785947350210-0603",
       "usuario": "daniel.decan@nominasaps.com",
       "rol": "asesor_comercial",
@@ -9614,6 +10093,24 @@
       "identificadorTecnico": "190.171.101.234",
       "resultado": "bloqueado",
       "mensajeError": "La administración de este módulo global está restringida a Administradores del sistema"
+    },
+    {
+      "id": "AUDIT-1791339574819-2264",
+      "usuario": "daniel.decan@nominasaps.com",
+      "rol": "administrador",
+      "fechaHora": "2026-10-07T02:19:34.819Z",
+      "modulo": "Solicitudes EOR",
+      "accion": "Eliminar",
+      "entidadAfectada": "Solicitudes EOR",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Solicitudes EOR",
+      "identificadorTecnico": "127.0.0.1",
+      "resultado": "exitoso",
+      "mensajeError": ""
     },
     {
       "id": "AUDIT-1791318318908-0095",
@@ -9972,6 +10469,24 @@
       "valorNuevo": "",
       "motivoObservacion": "Operación de modificación en el módulo Solicitudes EOR",
       "identificadorTecnico": "200.229.6.29",
+      "resultado": "exitoso",
+      "mensajeError": ""
+    },
+    {
+      "id": "AUDIT-1791937973113-6341",
+      "usuario": "guadalupe-admin-eor@grupostt.com",
+      "rol": "administrador",
+      "fechaHora": "2026-10-14T00:32:53.113Z",
+      "modulo": "Solicitudes EOR",
+      "accion": "Eliminar",
+      "entidadAfectada": "Solicitudes EOR",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "Operación de modificación en el módulo Solicitudes EOR",
+      "identificadorTecnico": "190.113.103.156",
       "resultado": "exitoso",
       "mensajeError": ""
     },
@@ -10336,6 +10851,42 @@
       "mensajeError": ""
     },
     {
+      "id": "AUDIT-1792003084517-2201",
+      "usuario": "alertas@grupostt.com",
+      "rol": "prospecto",
+      "fechaHora": "2026-10-14T18:38:04.517Z",
+      "modulo": "Usuarios",
+      "accion": "Ver",
+      "entidadAfectada": "Usuarios",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso no autorizado para Prospecto"
+    },
+    {
+      "id": "AUDIT-1791937536795-2306",
+      "usuario": "alertas@grupostt.com",
+      "rol": "prospecto",
+      "fechaHora": "2026-10-14T00:25:36.795Z",
+      "modulo": "Trabajadores",
+      "accion": "Ver",
+      "entidadAfectada": "Trabajadores",
+      "entidadId": "",
+      "estadoAnterior": "",
+      "estadoNuevo": "",
+      "valorAnterior": "",
+      "valorNuevo": "",
+      "motivoObservacion": "",
+      "identificadorTecnico": "190.113.103.156",
+      "resultado": "bloqueado",
+      "mensajeError": "Acceso no autorizado para Prospecto"
+    },
+    {
       "id": "AUDIT-1791226564369-0613",
       "usuario": "guadalupe-asesor-eor@grupostt.com",
       "rol": "asesor_comercial",
@@ -10355,15 +10906,15 @@
     }
   ],
   "configuracionSistema": {
-    "correoRemitente": "alertas@grupostt.com",
-    "nombreRemitente": "Quick Hire LATAM - Alertas STT",
-    "correoCopiaSolicitudes": "alertas@grupostt.com",
-    "smtpHost": "smtp.gmail.com",
     "smtpPort": 465,
-    "smtpSecure": true,
+    "correoRemitente": "alertas@grupostt.com",
     "smtpUser": "alertas@grupostt.com",
-    "smtpPass": "smjl brpm xyer bwzp",
-    "notificacionesActivas": true
+    "smtpHost": "smtp.gmail.com",
+    "correoCopiaSolicitudes": "alertas@grupostt.com",
+    "nombreRemitente": "Quick Hire LATAM - Alertas STT",
+    "notificacionesActivas": true,
+    "smtpSecure": true,
+    "smtpPass": "smjl brpm xyer bwzp"
   },
   "tarifarios": [
     {
@@ -10492,7 +11043,8 @@
         "iva_wht_renta",
         "plantillas",
         "tickets",
-        "notifications"
+        "notifications",
+        "trabajadores"
       ]
     },
     {
@@ -10530,10 +11082,10 @@
     }
   ],
   "configuracionFactura": {
-    "comisionPct": 2.5,
     "whtPct": 4,
+    "impuestoPct": 1.5,
     "ivaPct": 19,
-    "impuestoPct": 1.5
+    "comisionPct": 2.5
   },
   "deletedIds": [
     "CLI-929",

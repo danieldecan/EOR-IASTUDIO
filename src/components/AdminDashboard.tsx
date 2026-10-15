@@ -11,6 +11,7 @@ import FeesManagementPanel from './FeesManagementPanel';
 import IvaWhtRentaMaster from './IvaWhtRentaMaster';
 import RolesManagementPanel from './RolesManagementPanel';
 import UserEditModal from './UserEditModal';
+import ClientHierarchyTree from './ClientHierarchyTree';
 import { DEFAULT_ROLES_CONFIG, ALL_MENU_IDS } from '../data/menuOptions';
 import { 
   User, 
@@ -97,7 +98,8 @@ import {
   Save,
   Mail,
   Trash2,
-  Edit2
+  Edit2,
+  Download
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -402,7 +404,22 @@ export default function AdminDashboard({ user, lang, onLanguageChange, onLogout 
   const [auditObservaciones, setAuditObservaciones] = useState('');
   const [auditMotivo, setAuditMotivo] = useState('');
   const [auditError, setAuditError] = useState('');
+  const [auditNombre, setAuditNombre] = useState('');
+  const [auditCorreo, setAuditCorreo] = useState('');
+  const [auditPuesto, setAuditPuesto] = useState('');
+  const [auditDocumento, setAuditDocumento] = useState('');
+  const [auditProyecto, setAuditProyecto] = useState('');
+  const [auditSalario, setAuditSalario] = useState(0);
+  const [auditPais, setAuditPais] = useState('México');
+  const [auditModalidad, setAuditModalidad] = useState<'Remoto' | 'Híbrido' | 'Presencial'>('Remoto');
   const [selectedInvoiceForDetail, setSelectedInvoiceForDetail] = useState<any>(null);
+
+  const auditCostEstimate = useMemo(() => {
+    if (!showAuditModal) return null;
+    const client = clientes.find(c => c.id === showAuditModal.clienteId);
+    const clientFee = client?.feePorEmpleado || 150;
+    return calcularCostoTalento(auditSalario, auditPais, showAuditModal.moneda || 'USD', clientFee);
+  }, [showAuditModal, auditSalario, auditPais, clientes]);
 
   // Social Charge Form Fields
   const [socialPais, setSocialPais] = useState('México');
@@ -835,6 +852,109 @@ export default function AdminDashboard({ user, lang, onLanguageChange, onLogout 
     }
   };
 
+  const handleOpenClientForEdit = (c: Cliente) => {
+    setClientEmpresa(c.empresa);
+    setClientPais(c.pais);
+    setClientPaisesOperacion(c.paisesOperacion && c.paisesOperacion.length > 0 ? c.paisesOperacion : (c.pais === 'Regional' ? ['México', 'Colombia'] : [c.pais]));
+    setClientServicio(c.servicioContratado);
+    setClientMoneda(c.moneda);
+    setClientFee(c.feePorEmpleado);
+    setClientCupo(c.cupoTrabajadores);
+    setClientCorreo(c.correoContacto);
+    setClientTelefono(c.telefonoContacto);
+    setClientContacto(c.nombreContacto);
+    setClientDescuento(c.descuentoVolumen);
+    setClientLinkedSolicitud(c.solicitudVinculadaId || '');
+    setClientEstado(c.estado);
+    setClientMotivo('');
+
+    // Load custom properties
+    setClientServicioTipo(c.servicio || 'EOR');
+    setClientTipoSocio(c.tipoCliente === 'Partners' ? 'Partners' : 'Directo');
+    if (c.jerarquia === 'Supra' || c.tipoCliente === 'Holding' || c.tipoCliente === 'Supra' || c.id === 'CLI-876' || (c.empresa && c.empresa.toLowerCase().includes('pagus')) || c.supraclienteId === 'supracliente-eor-peo@grupostt.com') {
+      setClientJerarquia('Supra');
+      setClientSupraclienteId('supracliente-eor-peo@grupostt.com');
+    } else if (c.jerarquia === 'Filial' || (c.supraclienteId && c.supraclienteId !== 'supracliente-eor-peo@grupostt.com')) {
+      setClientJerarquia('Filial');
+      setClientSupraclienteId(c.supraclienteId);
+    } else {
+      setClientJerarquia('Directo');
+      setClientSupraclienteId('');
+    }
+    setClientProyecto(c.proyecto || '');
+    setClientRazonSocial(c.razonSocial || '');
+    setClientCedulaJuridica(c.cedulaJuridica || '');
+    setClientDireccion(c.direccion || '');
+    setClientFechaInicioContrato(c.fechaInicioContrato || '');
+    setClientPosicion(c.posicion || '');
+    const tFact = c.tipoFacturacion || (c.paisFacturacion && c.paisFacturacion !== c.pais ? 'Internacional' : 'Local');
+    setClientTipoFacturacion(tFact);
+    const pFact = c.paisFacturacion || c.pais;
+    setClientPaisFacturacion(pFact);
+    setClientCuentaBancariaId(c.cuentaBancariaId || '');
+    setClientCuentaBancariaDetalle(c.cuentaBancariaDetalle || '');
+    if (!c.cuentaBancariaId) {
+      autoSelectAccount(pFact, c.moneda);
+    }
+    setClientFeeInfo(`Fee acordado: $${c.feePorEmpleado} ${c.moneda}/mes por talento (Cupo: ${c.cupoTrabajadores})`);
+    setClientCredito(c.credito || '10 días');
+    setClientHeadcountProyecto(c.headcountProyecto || 1);
+    setClientFrecuenciaNomina(c.frecuenciaNomina || 'Mensual');
+    setClientFechaInicio(c.fechaInicio || '');
+    setClientAdicionales(c.adicionales || '');
+    setClientAdicionalesExtralegales(c.adicionalesExtralegales || '');
+    setClientSociedadContratacion(c.sociedadContratacion || '');
+    setClientRepresentanteLegal(c.representanteLegal || c.nombreContacto || '');
+    setClientDocumentoRepresentante(c.documentoRepresentante || '');
+    setClientAsesorAsignado(c.asesorAsignado || '');
+    setClientIdioma(c.idioma || 'es');
+
+    setShowClientModal(c);
+  };
+
+  const handleOpenClientCreate = (defaultJerarquia?: 'Directo' | 'Supra' | 'Filial', defaultSupraId?: string) => {
+    setClientEmpresa('');
+    setClientPais('México');
+    setClientServicio('Employer of Record (EOR)');
+    setClientMoneda('USD');
+    setClientCupo(10);
+    setClientHeadcountProyecto(10);
+    autoCalculateClientFee('México', 10);
+    setClientCorreo('');
+    setClientTelefono('');
+    setClientContacto('');
+    setClientDescuento(0);
+    setClientLinkedSolicitud('');
+    setClientEstado('Activo');
+    setClientMotivo('');
+
+    setClientServicioTipo('EOR');
+    setClientTipoSocio('Directo');
+    setClientJerarquia(defaultJerarquia || 'Directo');
+    setClientProyecto('');
+    setClientRazonSocial('');
+    setClientCedulaJuridica('');
+    setClientDireccion('');
+    setClientFechaInicioContrato(new Date().toISOString().split('T')[0]);
+    setClientPosicion('');
+    setClientTipoFacturacion('Local');
+    setClientPaisFacturacion('México');
+    autoSelectAccount('México', 'USD');
+    setClientCredito('10 días');
+    setClientFrecuenciaNomina('Mensual');
+    setClientFechaInicio(new Date().toISOString().split('T')[0]);
+    setClientAdicionales('');
+    setClientAdicionalesExtralegales('');
+    setClientSociedadContratacion('');
+    setClientRepresentanteLegal('');
+    setClientDocumentoRepresentante('');
+    setClientSupraclienteId(defaultSupraId || (defaultJerarquia === 'Supra' ? 'supracliente-eor-peo@grupostt.com' : ''));
+    setClientAsesorAsignado('');
+    setClientIdioma('es');
+
+    setShowClientModal('new');
+  };
+
   // Save Manual Solicitud de EOR (Point 4)
   const handleCreateManualSolicitud = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -960,10 +1080,36 @@ export default function AdminDashboard({ user, lang, onLanguageChange, onLogout 
     }
 
     try {
+      const client = clientes.find(c => c.id === showAuditModal.clienteId);
+      const clientFee = client?.feePorEmpleado || 150;
+      const cost = calcularCostoTalento(auditSalario, auditPais, showAuditModal.moneda || 'USD', clientFee);
+
       await api.updateTrabajador(showAuditModal.id, {
+        nombre: auditNombre.trim() || showAuditModal.nombre,
+        correo: auditCorreo.trim() || showAuditModal.correo,
+        puesto: auditPuesto.trim() || showAuditModal.puesto,
+        documentoIdentidad: auditDocumento.trim(),
+        proyecto: auditProyecto.trim() || showAuditModal.proyecto,
+        salario: Number(auditSalario),
+        pais: auditPais,
+        modalidadTrabajo: auditModalidad,
         estado: auditEstado,
         observaciones: auditObservaciones || 'Aprobado sin observaciones.',
         motivo: auditMotivo,
+        cargasSocialesPatronalesPct: cost.cargasSocialesPatronalesPct,
+        cargasSocialesMonto: cost.cargasSocialesMonto,
+        feeMonto: cost.feeServicioMonto,
+        impuestosMonto: cost.impuestosMonto,
+        costoTotalTalento: cost.costoTotalTalento,
+        detallesCostos: {
+          cargasSocialesPatronalesPct: cost.cargasSocialesPatronalesPct,
+          cargasSocialesMonto: cost.cargasSocialesMonto,
+          feeServicioMonto: cost.feeServicioMonto,
+          impuestosMonto: cost.impuestosMonto,
+          costoTotalTalento: cost.costoTotalTalento,
+          desglose: cost.desglose,
+          impuestosDetalle: cost.impuestosDetalle
+        },
         usuario: user.correo
       });
 
@@ -1262,7 +1408,12 @@ export default function AdminDashboard({ user, lang, onLanguageChange, onLogout 
                           c.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (supraName && supraName.toLowerCase().includes(searchQuery.toLowerCase())) ||
                           (c.nombreContacto && c.nombreContacto.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCountry = checkCountryMatch(c.pais, c.esRegional, c.paisesOperacion);
+    let matchesCountry = checkCountryMatch(c.pais, c.esRegional, c.paisesOperacion);
+    // If client is a Supra Matriz (holding), it only matches the country if at least one of its filial clients is in that country!
+    if ((c.jerarquia === 'Supra' || c.tipoCliente === 'Holding' || c.tipoCliente === 'Supra' || c.id === 'CLI-876') && countryFilter !== 'All') {
+      const filialClients = clientes.filter(f => f.id !== c.id && (f.supraclienteId === c.id || f.supraclienteId === 'CLI-876'));
+      matchesCountry = filialClients.some(f => checkCountryMatch(f.pais, f.esRegional, f.paisesOperacion));
+    }
     
     let matchesAsesor = true;
     if (user.rol === 'asesor_comercial') {
@@ -2197,232 +2348,26 @@ export default function AdminDashboard({ user, lang, onLanguageChange, onLogout 
                 <p className="text-slate-500 text-xs mt-0.5">Controla suscripciones, cupos máximos, descuentos de volumen y el estatus crediticio de tus clientes.</p>
               </div>
               <button
-                onClick={() => {
-                  setClientEmpresa('');
-                  setClientPais('México');
-                  setClientServicio('Employer of Record (EOR)');
-                  setClientMoneda('USD');
-                  setClientCupo(10);
-                  setClientHeadcountProyecto(10);
-                  autoCalculateClientFee('México', 10);
-                  setClientCorreo('');
-                  setClientTelefono('');
-                  setClientContacto('');
-                  setClientDescuento(0);
-                  setClientLinkedSolicitud('');
-                  setClientEstado('Activo');
-                  setClientMotivo('');
-
-                  // Clean new custom fields as well
-                  setClientServicioTipo('EOR');
-                  setClientTipoSocio('Directo');
-                  setClientJerarquia('Directo');
-                  setClientProyecto('');
-                  setClientRazonSocial('');
-                  setClientCedulaJuridica('');
-                  setClientDireccion('');
-                  setClientFechaInicioContrato(new Date().toISOString().split('T')[0]);
-                  setClientPosicion('');
-                  setClientTipoFacturacion('Local');
-                  setClientPaisFacturacion('México');
-                  autoSelectAccount('México', 'USD');
-                  setClientCredito('10 días');
-                  setClientFrecuenciaNomina('Mensual');
-                  setClientFechaInicio(new Date().toISOString().split('T')[0]);
-                  setClientAdicionales('');
-                  setClientAdicionalesExtralegales('');
-                  setClientSociedadContratacion('');
-                  setClientRepresentanteLegal('');
-                  setClientDocumentoRepresentante('');
-                  setClientSupraclienteId('');
-                  setClientAsesorAsignado('');
-                  setClientIdioma('es');
-
-                  setShowClientModal('new');
-                }}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all shadow-md"
+                onClick={() => handleOpenClientCreate()}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all shadow-md cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Registrar Cliente Nuevo</span>
               </button>
             </div>
 
-            <div className="overflow-x-auto border border-slate-100 rounded-2xl">
-              <table className="w-full text-left text-xs text-slate-600">
-                <thead className="bg-slate-50 text-slate-700 uppercase tracking-wider font-bold">
-                  <tr>
-                    <th className="px-4 py-3">Empresa</th>
-                    <th className="px-4 py-3">País de Operación</th>
-                    <th className="px-4 py-3">EOR Fee Base</th>
-                    <th className="px-4 py-3">Colaboradores</th>
-                    <th className="px-4 py-3">Descuento Volumen</th>
-                    <th className="px-4 py-3">Estado</th>
-                    <th className="px-4 py-3 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredClientes.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-slate-500 font-semibold">
-                        No hay clientes coincidentes.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredClientes.map((c) => (
-                      <tr key={c.id} className="hover:bg-slate-55 transition-all">
-                        <td className="px-4 py-4">
-                          <div>
-                            <div className="font-bold text-slate-900">{c.empresa}</div>
-                            <div className="text-[10px] text-slate-500">ID: {c.id} | {c.nombreContacto}</div>
-                            {c.supraclienteId && (
-                              <div className="mt-0.5">
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                  Holding: {
-                                    clientes.find(cl => cl.id === c.supraclienteId || cl.empresa.toLowerCase() === c.supraclienteId?.toLowerCase())?.empresa ||
-                                    (c.supraclienteId === 'CLI-876' || c.supraclienteId.toLowerCase().includes('pagus') ? 'PAGUS LLC' : '') ||
-                                    (c.supraclienteId === 'supracliente-eor-peo@grupostt.com' ? 'Supra Cliente Global Holding' : c.supraclienteId)
-                                  }
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          {c.esRegional || c.pais === 'Regional' ? (
-                            <div className="flex flex-col">
-                              <span className="inline-flex items-center space-x-1 font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md text-[11px] w-fit shadow-2xs">
-                                <span>🌎 Regional</span>
-                              </span>
-                              {c.paisesOperacion && c.paisesOperacion.length > 0 && (
-                                <span className="text-[10px] text-slate-500 font-medium mt-0.5 truncate max-w-[180px]" title={c.paisesOperacion.join(', ')}>
-                                  {c.paisesOperacion.length} países: {c.paisesOperacion.join(', ')}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="font-semibold text-slate-700">
-                              {COUNTRY_FLAGS[c.pais] ? `${COUNTRY_FLAGS[c.pais]} ` : ''}{c.pais}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-4 font-mono font-bold text-slate-900">
-                          {c.feePorEmpleado.toLocaleString()} {c.moneda}
-                        </td>
-                        <td className="px-4 py-4 font-semibold text-slate-700">
-                          <span className="font-bold text-slate-900">{workers.filter(w => w.clienteId === c.id).length}</span>
-                          <span className="text-[10px] text-slate-500 block">({workers.filter(w => w.clienteId === c.id && w.estado === 'Activo').length} activos)</span>
-                        </td>
-                        <td className="px-4 py-4 text-emerald-600 font-bold">
-                          {c.descuentoVolumen}%
-                        </td>
-                        <td className="px-4 py-4">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                            c.estado === 'Activo' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                            c.estado === 'En mora' ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                            'bg-slate-100 text-slate-700'
-                          }`}>
-                            {c.estado}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <button
-                            onClick={() => {
-                              setClientEmpresa(c.empresa);
-                              setClientPais(c.pais);
-                              setClientPaisesOperacion(c.paisesOperacion && c.paisesOperacion.length > 0 ? c.paisesOperacion : (c.pais === 'Regional' ? ['México', 'Colombia'] : [c.pais]));
-                              setClientServicio(c.servicioContratado);
-                              setClientMoneda(c.moneda);
-                              setClientFee(c.feePorEmpleado);
-                              setClientCupo(c.cupoTrabajadores);
-                              setClientCorreo(c.correoContacto);
-                              setClientTelefono(c.telefonoContacto);
-                              setClientContacto(c.nombreContacto);
-                              setClientDescuento(c.descuentoVolumen);
-                              setClientLinkedSolicitud(c.solicitudVinculadaId || '');
-                              setClientEstado(c.estado);
-                              setClientMotivo('');
-
-                              // Load new custom properties
-                              setClientServicioTipo(c.servicio || 'EOR');
-                              setClientTipoSocio(c.tipoCliente === 'Partners' ? 'Partners' : 'Directo');
-                              if (c.jerarquia === 'Supra' || c.tipoCliente === 'Holding' || c.tipoCliente === 'Supra' || c.id === 'CLI-876' || (c.empresa && c.empresa.toLowerCase().includes('pagus')) || c.supraclienteId === 'supracliente-eor-peo@grupostt.com') {
-                                setClientJerarquia('Supra');
-                                setClientSupraclienteId('supracliente-eor-peo@grupostt.com');
-                              } else if (c.jerarquia === 'Filial' || (c.supraclienteId && c.supraclienteId !== 'supracliente-eor-peo@grupostt.com')) {
-                                setClientJerarquia('Filial');
-                                setClientSupraclienteId(c.supraclienteId);
-                              } else {
-                                setClientJerarquia('Directo');
-                                setClientSupraclienteId('');
-                              }
-                              setClientProyecto(c.proyecto || '');
-                              setClientRazonSocial(c.razonSocial || '');
-                              setClientCedulaJuridica(c.cedulaJuridica || '');
-                              setClientDireccion(c.direccion || '');
-                              setClientFechaInicioContrato(c.fechaInicioContrato || '');
-                              setClientPosicion(c.posicion || '');
-                              const tFact = c.tipoFacturacion || (c.paisFacturacion && c.paisFacturacion !== c.pais ? 'Internacional' : 'Local');
-                              setClientTipoFacturacion(tFact);
-                              const pFact = c.paisFacturacion || c.pais;
-                              setClientPaisFacturacion(pFact);
-                              setClientCuentaBancariaId(c.cuentaBancariaId || '');
-                              setClientCuentaBancariaDetalle(c.cuentaBancariaDetalle || '');
-                              if (!c.cuentaBancariaId) {
-                                autoSelectAccount(pFact, c.moneda);
-                              }
-                              setClientFeeInfo(`Fee acordado: $${c.feePorEmpleado} ${c.moneda}/mes por talento (Cupo: ${c.cupoTrabajadores})`);
-                              setClientCredito(c.credito || '10 días');
-                              setClientHeadcountProyecto(c.headcountProyecto || 1);
-                              setClientFrecuenciaNomina(c.frecuenciaNomina || 'Mensual');
-                              setClientFechaInicio(c.fechaInicio || '');
-                              setClientAdicionales(c.adicionales || '');
-                              setClientAdicionalesExtralegales(c.adicionalesExtralegales || '');
-                              setClientSociedadContratacion(c.sociedadContratacion || '');
-                              setClientRepresentanteLegal(c.representanteLegal || c.nombreContacto || '');
-                              setClientDocumentoRepresentante(c.documentoRepresentante || '');
-                              setClientAsesorAsignado(c.asesorAsignado || '');
-                              setClientIdioma(c.idioma || 'es');
-
-                              setShowClientModal(c);
-                            }}
-                            className="inline-flex items-center space-x-1 border border-indigo-200 bg-white hover:bg-indigo-50/50 hover:border-indigo-300 text-indigo-700 px-2 py-1 rounded-lg text-[10px] font-bold transition-all shadow-3xs cursor-pointer"
-                            title="Editar datos, razón social, país y propietario del cliente"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                            <span>Editar</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedClientForUsers(c);
-                            }}
-                            className="inline-flex items-center space-x-1 border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-indigo-200 text-indigo-700 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ml-1.5 cursor-pointer"
-                          >
-                            <span>Usuarios</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setInitialPrepClientId(c.id);
-                              setActiveTab('contracts');
-                            }}
-                            className="inline-flex items-center space-x-1 border border-indigo-100 bg-indigo-50 hover:bg-indigo-100/80 text-indigo-700 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ml-1.5 cursor-pointer"
-                          >
-                            <FileText className="w-3 h-3 shrink-0" />
-                            <span>Preparar Contrato</span>
-                          </button>
-                          <button
-                            onClick={() => setClienteToDelete(c)}
-                            title="Eliminar Cliente permanentemente"
-                            className="p-1.5 border border-rose-200 hover:border-rose-400 bg-rose-50/70 hover:bg-rose-100 text-rose-600 rounded-lg transition-all cursor-pointer ml-1.5 inline-flex items-center justify-center shadow-3xs"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <ClientHierarchyTree
+              clientes={filteredClientes}
+              allClientes={clientes}
+              workers={workers}
+              contratos={contratosComerciales}
+              lang={lang}
+              onEditClient={handleOpenClientForEdit}
+              onDeleteClient={(c) => setClienteToDelete(c)}
+              onManageUsers={(c) => setSelectedClientForUsers(c)}
+              onNewClient={(defaultJerarquia, defaultSupraId) => handleOpenClientCreate(defaultJerarquia, defaultSupraId)}
+              isAsesor={false}
+            />
           </div>
         )}
 
@@ -2513,9 +2458,16 @@ export default function AdminDashboard({ user, lang, onLanguageChange, onLogout 
                     className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white text-slate-900"
                   >
                     <option value="All">🏢 Todos los Clientes ({clientes.length})</option>
-                    {clientes.map(c => (
-                      <option key={c.id} value={c.id}>{c.empresa} ({c.pais})</option>
-                    ))}
+                    <optgroup label="📁 PAGUS LLC (Holding / Supra)">
+                      {clientes.filter(c => c.supraclienteId === 'CLI-876' || (c.supraclienteId && c.supraclienteId.toLowerCase().includes('pagus'))).map(c => (
+                        <option key={c.id} value={c.id}>&nbsp;&nbsp;↳ {c.empresa} ({c.pais})</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="🏢 Clientes Directos">
+                      {clientes.filter(c => c.id !== 'CLI-876' && c.jerarquia !== 'Supra' && c.supraclienteId !== 'CLI-876' && (!c.supraclienteId || !c.supraclienteId.toLowerCase().includes('pagus'))).map(c => (
+                        <option key={c.id} value={c.id}>{c.empresa} ({c.pais})</option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
 
@@ -2629,11 +2581,20 @@ export default function AdminDashboard({ user, lang, onLanguageChange, onLogout 
                                               setAuditEstado(w.estado as any);
                                               setAuditObservaciones(w.observaciones || '');
                                               setAuditMotivo('');
+                                              setAuditNombre(w.nombre || '');
+                                              setAuditCorreo(w.correo || '');
+                                              setAuditPuesto(w.puesto || '');
+                                              setAuditDocumento(w.documentoIdentidad || '');
+                                              setAuditProyecto(w.proyecto || '');
+                                              setAuditSalario(w.salario || 0);
+                                              setAuditPais(w.pais || 'México');
+                                              setAuditModalidad(w.modalidadTrabajo || 'Remoto');
                                               setShowAuditModal(w);
                                             }}
-                                            className="inline-flex items-center space-x-1 bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all shadow-xs"
+                                            className="inline-flex items-center space-x-1 bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all shadow-xs cursor-pointer"
                                           >
-                                            <span>Auditar / Dictaminar</span>
+                                            <Edit2 className="w-3 h-3" />
+                                            <span>Editar / Auditar</span>
                                           </button>
                                         </td>
                                       </tr>
@@ -2679,9 +2640,16 @@ export default function AdminDashboard({ user, lang, onLanguageChange, onLogout 
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white text-slate-950"
                   >
                     <option value="">-- Selecciona Cliente --</option>
-                    {clientes.map(c => (
-                      <option key={c.id} value={c.id}>{c.empresa} ({c.pais})</option>
-                    ))}
+                    <optgroup label="📁 PAGUS LLC (Holding / Supra)">
+                      {clientes.filter(c => c.supraclienteId === 'CLI-876' || (c.supraclienteId && c.supraclienteId.toLowerCase().includes('pagus'))).map(c => (
+                        <option key={c.id} value={c.id}>&nbsp;&nbsp;↳ {c.empresa} ({c.pais})</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="🏢 Clientes Directos">
+                      {clientes.filter(c => c.id !== 'CLI-876' && c.jerarquia !== 'Supra' && c.supraclienteId !== 'CLI-876' && (!c.supraclienteId || !c.supraclienteId.toLowerCase().includes('pagus'))).map(c => (
+                        <option key={c.id} value={c.id}>{c.empresa} ({c.pais})</option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
 
@@ -5420,84 +5388,221 @@ export default function AdminDashboard({ user, lang, onLanguageChange, onLogout 
         </div>
       )}
 
-      {/* MODAL DICTAMEN / AUDIT DE COLABORADOR */}
+      {/* MODAL DICTAMEN Y EDICIÓN DE COLABORADOR */}
       {showAuditModal && (
         <div id="audit-modal" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full border border-slate-100 overflow-hidden text-xs">
-            <div className="bg-indigo-900 text-white p-5 flex justify-between items-center">
+          <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full border border-slate-100 overflow-hidden text-xs max-h-[90vh] flex flex-col">
+            <div className="bg-indigo-900 text-white p-5 flex justify-between items-center shrink-0">
               <div>
-                <h3 className="text-sm font-bold">Dictamen de Alta Colaborador</h3>
-                <p className="text-[10px] text-indigo-200 mt-0.5">Analiza y aprueba la liquidación del colaborador en la base del portal.</p>
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                  <Edit2 className="w-4 h-4 text-indigo-300" />
+                  <span>Auditoría & Edición de Colaborador: {auditNombre || showAuditModal.nombre}</span>
+                </h3>
+                <p className="text-[10px] text-indigo-200 mt-0.5">
+                  ID: <span className="font-mono font-bold text-white">{showAuditModal.id}</span> • Cliente: <span className="font-bold text-white">{showAuditModal.clienteNombre}</span>
+                </p>
               </div>
-              <button onClick={() => setShowAuditModal(null)} className="text-indigo-200 hover:text-white font-bold text-lg">&times;</button>
+              <button onClick={() => setShowAuditModal(null)} className="text-indigo-200 hover:text-white font-bold text-lg cursor-pointer">&times;</button>
             </div>
 
-            <form onSubmit={handleAuditWorkerSubmit} className="p-5 space-y-4">
+            <form onSubmit={handleAuditWorkerSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
               {auditError && <div className="p-2 bg-rose-50 border border-rose-200 text-rose-700 font-bold rounded-xl">{auditError}</div>}
 
-              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <span className="text-slate-500">Colaborador:</span>
-                  <strong className="text-slate-900 text-right">{showAuditModal.nombre}</strong>
-                  <span className="text-slate-500">Salario Base:</span>
-                  <strong className="text-slate-900 text-right">{showAuditModal.salario.toLocaleString()} {showAuditModal.moneda}</strong>
-                  <span className="text-slate-500">País Regulador:</span>
-                  <strong className="text-indigo-600 text-right">{showAuditModal.pais}</strong>
+              {/* SECCIÓN 1: DATOS BÁSICOS DEL COLABORADOR */}
+              <div className="space-y-3 bg-slate-50/60 p-3.5 rounded-2xl border border-slate-200/80">
+                <h4 className="text-indigo-950 font-bold text-xs uppercase tracking-wider flex items-center space-x-2 border-b border-slate-200/80 pb-1.5">
+                  <Users className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>1. Datos del Colaborador y Proyecto</span>
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre Completo *</label>
+                    <input
+                      type="text"
+                      required
+                      value={auditNombre}
+                      onChange={(e) => setAuditNombre(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-900 font-semibold text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Documento Identidad / Cédula / DNI</label>
+                    <input
+                      type="text"
+                      value={auditDocumento}
+                      onChange={(e) => setAuditDocumento(e.target.value)}
+                      placeholder="Ej. 1-1456-0789"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Correo Electrónico *</label>
+                    <input
+                      type="email"
+                      required
+                      value={auditCorreo}
+                      onChange={(e) => setAuditCorreo(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Puesto / Cargo *</label>
+                    <input
+                      type="text"
+                      required
+                      value={auditPuesto}
+                      onChange={(e) => setAuditPuesto(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-900 font-semibold text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Proyecto del Cliente</label>
+                    <input
+                      type="text"
+                      value={auditProyecto}
+                      onChange={(e) => setAuditProyecto(e.target.value)}
+                      placeholder="Ej: Proyecto Alpha"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Modalidad de Trabajo</label>
+                    <select
+                      value={auditModalidad}
+                      onChange={(e) => setAuditModalidad(e.target.value as any)}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-semibold cursor-pointer"
+                    >
+                      <option value="Remoto">Remoto</option>
+                      <option value="Híbrido">Híbrido</option>
+                      <option value="Presencial">Presencial</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Dictamen Final</label>
-                <select
-                  value={auditEstado}
-                  onChange={(e) => setAuditEstado(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-950 font-bold"
-                >
-                  <option value="Activo">Aprobar Alta (Activo)</option>
-                  <option value="Con observaciones">Rechazar con Observaciones</option>
-                  <option value="Inactivo">Dar de Baja (Inactivo)</option>
-                </select>
+              {/* SECCIÓN 2: CONDICIONES ECONÓMICAS Y CÁLCULO DE COSTO TALENTO */}
+              <div className="space-y-3 bg-slate-50/60 p-3.5 rounded-2xl border border-slate-200/80">
+                <h4 className="text-indigo-950 font-bold text-xs uppercase tracking-wider flex items-center space-x-2 border-b border-slate-200/80 pb-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>2. Salario, País y Costo Total del Talento</span>
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">País Regulador *</label>
+                    <select
+                      value={auditPais}
+                      onChange={(e) => setAuditPais(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-900 font-bold text-xs cursor-pointer"
+                    >
+                      {LATAM_COUNTRIES.map(p => (
+                        <option key={p} value={p}>{COUNTRY_FLAGS[p] || '🌎'} {p}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Salario Base ({showAuditModal.moneda || 'USD'}) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      step="any"
+                      value={auditSalario}
+                      onChange={(e) => setAuditSalario(Number(e.target.value))}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-900 font-mono font-bold text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* LIVE TALENT COST BREAKDOWN CARD */}
+                {auditCostEstimate && (
+                  <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs space-y-2">
+                    <span className="text-[10px] font-bold text-indigo-950 uppercase tracking-wider block">
+                      Cálculo Dinámico de Cargas Patronales ({auditPais})
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px]">
+                      <div className="p-2 bg-slate-50 rounded-lg">
+                        <span className="text-[9px] text-slate-500 block uppercase font-bold">Salario</span>
+                        <strong className="font-mono text-slate-900">${auditCostEstimate.salarioBruto.toLocaleString()}</strong>
+                      </div>
+                      <div className="p-2 bg-amber-50 rounded-lg border border-amber-200/50">
+                        <span className="text-[9px] text-amber-700 block uppercase font-bold">Cargas ({auditCostEstimate.cargasSocialesPatronalesPct}%)</span>
+                        <strong className="font-mono text-amber-700">+${auditCostEstimate.cargasSocialesMonto.toLocaleString()}</strong>
+                      </div>
+                      <div className="p-2 bg-indigo-50 rounded-lg border border-indigo-200/50">
+                        <span className="text-[9px] text-indigo-700 block uppercase font-bold">Fee EOR</span>
+                        <strong className="font-mono text-indigo-700">+${auditCostEstimate.feeServicioMonto.toLocaleString()}</strong>
+                      </div>
+                      <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200/50">
+                        <span className="text-[9px] text-emerald-800 block uppercase font-bold">Costo Total</span>
+                        <strong className="font-mono text-emerald-900 font-extrabold">${auditCostEstimate.costoTotalTalento.toLocaleString()}</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="space-y-1">
-                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">Observaciones Generales</label>
-                <textarea
-                  rows={2}
-                  value={auditObservaciones}
-                  onChange={(e) => setAuditObservaciones(e.target.value)}
-                  placeholder="Instrucciones para el cliente..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white text-slate-950 resize-none"
-                />
+              {/* SECCIÓN 3: DICTAMEN Y OBSERVACIONES */}
+              <div className="space-y-3 bg-slate-50/60 p-3.5 rounded-2xl border border-slate-200/80">
+                <h4 className="text-indigo-950 font-bold text-xs uppercase tracking-wider flex items-center space-x-2 border-b border-slate-200/80 pb-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>3. Dictamen Operativo y Compliance</span>
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Dictamen Final</label>
+                    <select
+                      value={auditEstado}
+                      onChange={(e) => setAuditEstado(e.target.value as any)}
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-950 font-bold text-xs cursor-pointer"
+                    >
+                      <option value="Activo">Aprobar Alta (Activo)</option>
+                      <option value="En revisión">En revisión / Pendiente</option>
+                      <option value="Con observaciones">Rechazar con Observaciones</option>
+                      <option value="Inactivo">Dar de Baja (Inactivo)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">Observaciones Generales</label>
+                    <input
+                      type="text"
+                      value={auditObservaciones}
+                      onChange={(e) => setAuditObservaciones(e.target.value)}
+                      placeholder="Instrucciones para el cliente..."
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-950 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-200 pt-2">
+                  <label className="block text-[10px] font-bold text-rose-700 uppercase tracking-wider mb-1">
+                    Motivo o Justificación del Dictamen / Ajuste <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={auditMotivo}
+                    onChange={(e) => setAuditMotivo(e.target.value)}
+                    placeholder="Para compliance, describe el motivo técnico de esta aprobación o modificación..."
+                    className="w-full px-3 py-1.5 bg-rose-50/50 border border-rose-200 rounded-xl focus:bg-white text-slate-950 font-semibold text-xs resize-none"
+                  />
+                </div>
               </div>
 
-              {/* MANDATORY REASON FOR TRANSACTIONS TRACKING */}
-              <div className="space-y-1 border-t border-slate-100 pt-3">
-                <label className="block text-[10px] font-bold text-rose-700 uppercase tracking-wider">
-                  Motivo o Justificación del Dictamen <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  rows={2}
-                  required
-                  value={auditMotivo}
-                  onChange={(e) => setAuditMotivo(e.target.value)}
-                  placeholder="Para compliance, describe el motivo técnico de esta aprobación/rechazo..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-rose-200 rounded-xl focus:bg-white text-slate-950 font-semibold resize-none"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-2">
+              <div className="flex justify-end space-x-2 pt-2 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setShowAuditModal(null)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs shadow-md cursor-pointer"
                 >
-                  Registrar Dictamen
+                  Guardar y Dictaminar
                 </button>
               </div>
             </form>

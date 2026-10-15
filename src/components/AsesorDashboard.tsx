@@ -17,6 +17,7 @@ import UserManualModal from './UserManualModal';
 import { PWAInstallButton } from './PWAInstallButton';
 import QuoteSimulatorModal from './QuoteSimulatorModal';
 import UserEditModal from './UserEditModal';
+import ClientHierarchyTree from './ClientHierarchyTree';
 import { DEFAULT_ROLES_CONFIG, ALL_MENU_IDS } from '../data/menuOptions';
 import { BookOpen, Calculator, Contact } from 'lucide-react';
 import { tText, translateStatus, tr, translateRole } from '../utils/i18n';
@@ -248,12 +249,60 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
   const [editClientContacto, setEditClientContacto] = useState('');
   const [editClientEstado, setEditClientEstado] = useState('Activo');
   const [editClientSupraclienteId, setEditClientSupraclienteId] = useState('');
+  const [editClientJerarquia, setEditClientJerarquia] = useState<'Directo' | 'Supra' | 'Filial'>('Directo');
   const [editClientTipoSocio, setEditClientTipoSocio] = useState<string>('Directo');
   const [editClientRazonSocial, setEditClientRazonSocial] = useState('');
   const [editClientRepresentanteLegal, setEditClientRepresentanteLegal] = useState('');
   const [editClientCedulaJuridica, setEditClientCedulaJuridica] = useState('');
   const [editClientError, setEditClientError] = useState('');
   const [isSavingClient, setIsSavingClient] = useState(false);
+
+  // Workers Management States for Asesor
+  const [trabajadores, setTrabajadores] = useState<Trabajador[]>([]);
+  const [workerFilterClient, setWorkerFilterClient] = useState<string>('All');
+  const [workerFilterCountry, setWorkerFilterCountry] = useState<string>('All');
+  const [workerSearch, setWorkerSearch] = useState<string>('');
+  const [editingWorker, setEditingWorker] = useState<Trabajador | null>(null);
+  const [editWorkerNombre, setEditWorkerNombre] = useState('');
+  const [editWorkerCorreo, setEditWorkerCorreo] = useState('');
+  const [editWorkerDocumento, setEditWorkerDocumento] = useState('');
+  const [editWorkerProyecto, setEditWorkerProyecto] = useState('');
+  const [editWorkerPuesto, setEditWorkerPuesto] = useState('');
+  const [editWorkerSalario, setEditWorkerSalario] = useState<number>(0);
+  const [editWorkerPais, setEditWorkerPais] = useState<string>('México');
+  const [editWorkerModalidad, setEditWorkerModalidad] = useState<'Remoto' | 'Híbrido' | 'Presencial'>('Remoto');
+  const [editWorkerEstado, setEditWorkerEstado] = useState<string>('Activo');
+  const [editWorkerObservaciones, setEditWorkerObservaciones] = useState<string>('');
+  const [editWorkerMotivo, setEditWorkerMotivo] = useState<string>('');
+  const [isSavingWorker, setIsSavingWorker] = useState<boolean>(false);
+  const [editWorkerError, setEditWorkerError] = useState<string>('');
+
+  const filteredWorkersList = useMemo(() => {
+    return trabajadores.filter(w => {
+      if (workerFilterClient !== 'All' && w.clienteId !== workerFilterClient) return false;
+      if (workerFilterCountry !== 'All' && w.pais !== workerFilterCountry) return false;
+      if (workerSearch.trim()) {
+        const q = workerSearch.toLowerCase();
+        const n = (w.nombre || '').toLowerCase();
+        const c = (w.correo || '').toLowerCase();
+        const p = (w.puesto || '').toLowerCase();
+        const d = (w.documentoIdentidad || '').toLowerCase();
+        const pr = (w.proyecto || '').toLowerCase();
+        const cl = (w.clienteNombre || '').toLowerCase();
+        if (!n.includes(q) && !c.includes(q) && !p.includes(q) && !d.includes(q) && !pr.includes(q) && !cl.includes(q)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [trabajadores, workerFilterClient, workerFilterCountry, workerSearch]);
+
+  const workerEditCostEstimate = useMemo(() => {
+    if (!editingWorker) return null;
+    const cl = allClientes.find(c => c.id === editingWorker.clienteId);
+    const fee = cl?.feePorEmpleado || 150;
+    return calcularCostoTalento(editWorkerSalario, editWorkerPais, editingWorker.moneda || 'USD', fee);
+  }, [editingWorker, editWorkerSalario, editWorkerPais, allClientes]);
   
   // Action Forms States
   const [showCreateSeguimientoModal, setShowCreateSeguimientoModal] = useState<boolean>(false);
@@ -403,7 +452,7 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [sData, cData, ctData, tData, segData, pData, uData, fData, tfData, pnData] = await Promise.all([
+      const [sData, cData, ctData, tData, segData, pData, uData, fData, tfData, pnData, trData] = await Promise.all([
         api.getSolicitudes().catch(() => []),
         api.getClientes().catch(() => []),
         api.getContratosComerciales().catch(() => []),
@@ -414,9 +463,11 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
         api.getFacturas().catch(() => []),
         api.getTarifas().catch(() => []),
         api.getPlantillasNotificacion().catch(() => []),
+        api.getTrabajadores().catch(() => [])
       ]);
       setTarifas(tfData);
       setPlantillasNotificacion(pnData);
+      setTrabajadores(trData || []);
       
       // Store all records for full multi-country scope visibility
       setAllSolicitudes(sData || []);
@@ -955,11 +1006,19 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
     setEditClientTelefono(c.telefonoContacto || '');
     setEditClientContacto(c.nombreContacto || '');
     setEditClientEstado(c.estado || 'Activo');
-    const normalizedSupra = (c.supraclienteId === 'guadalupe.gonzalez@grupostt.com' || (c.proyecto && c.proyecto.toLowerCase().includes('pagus') && !c.supraclienteId))
-      ? 'CLI-876'
-      : (c.supraclienteId || '');
-    setEditClientSupraclienteId(normalizedSupra);
-    setEditClientTipoSocio(c.tipoCliente || 'Directo');
+    const isSupra = c.jerarquia === 'Supra' || c.tipoCliente === 'Holding' || c.tipoCliente === 'Supra' || c.id === 'CLI-876' || (c.empresa && c.empresa.toLowerCase().includes('pagus')) || c.supraclienteId === 'supracliente-eor-peo@grupostt.com';
+    const isFilial = c.jerarquia === 'Filial' || (Boolean(c.supraclienteId) && c.supraclienteId !== 'supracliente-eor-peo@grupostt.com');
+    if (isSupra) {
+      setEditClientJerarquia('Supra');
+      setEditClientSupraclienteId('supracliente-eor-peo@grupostt.com');
+    } else if (isFilial) {
+      setEditClientJerarquia('Filial');
+      setEditClientSupraclienteId(c.supraclienteId || 'CLI-876');
+    } else {
+      setEditClientJerarquia('Directo');
+      setEditClientSupraclienteId('');
+    }
+    setEditClientTipoSocio(c.tipoCliente === 'Partners' ? 'Partners' : 'Directo');
     setEditClientRazonSocial(c.razonSocial || c.empresa || '');
     setEditClientRepresentanteLegal(c.representanteLegal || c.nombreContacto || '');
     setEditClientCedulaJuridica(c.cedulaJuridica || '');
@@ -982,7 +1041,8 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
         telefonoContacto: editClientTelefono.trim(),
         nombreContacto: editClientContacto.trim(),
         estado: editClientEstado,
-        supraclienteId: editClientSupraclienteId || undefined,
+        supraclienteId: editClientJerarquia === 'Filial' ? (editClientSupraclienteId || undefined) : editClientJerarquia === 'Supra' ? 'supracliente-eor-peo@grupostt.com' : undefined,
+        jerarquia: editClientJerarquia,
         tipoCliente: editClientTipoSocio,
         razonSocial: editClientRazonSocial.trim() || editClientEmpresa.trim(),
         representanteLegal: editClientRepresentanteLegal.trim() || editClientContacto.trim(),
@@ -998,6 +1058,114 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
     } finally {
       setIsSavingClient(false);
     }
+  };
+
+  // Worker Action Handlers for Asesor
+  const handleOpenEditWorker = (w: Trabajador) => {
+    setEditingWorker(w);
+    setEditWorkerNombre(w.nombre || '');
+    setEditWorkerCorreo(w.correo || '');
+    setEditWorkerDocumento(w.documentoIdentidad || '');
+    setEditWorkerProyecto(w.proyecto || '');
+    setEditWorkerPuesto(w.puesto || '');
+    setEditWorkerSalario(w.salario || 0);
+    setEditWorkerPais(w.pais || 'México');
+    setEditWorkerModalidad(w.modalidadTrabajo || 'Remoto');
+    setEditWorkerEstado(w.estado || 'Activo');
+    setEditWorkerObservaciones(w.observaciones || '');
+    setEditWorkerMotivo('');
+    setEditWorkerError('');
+  };
+
+  const handleSaveEditWorker = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingWorker) return;
+    if (!editWorkerMotivo.trim()) {
+      setEditWorkerError('El motivo o justificación de la edición es obligatorio.');
+      return;
+    }
+    setIsSavingWorker(true);
+    setEditWorkerError('');
+    try {
+      const cl = allClientes.find(c => c.id === editingWorker.clienteId);
+      const fee = cl?.feePorEmpleado || 150;
+      const cost = calcularCostoTalento(editWorkerSalario, editWorkerPais, editingWorker.moneda || 'USD', fee);
+
+      await api.updateTrabajador(editingWorker.id, {
+        nombre: editWorkerNombre.trim(),
+        correo: editWorkerCorreo.trim(),
+        documentoIdentidad: editWorkerDocumento.trim(),
+        proyecto: editWorkerProyecto.trim(),
+        puesto: editWorkerPuesto.trim(),
+        salario: Number(editWorkerSalario),
+        pais: editWorkerPais,
+        modalidadTrabajo: editWorkerModalidad,
+        estado: editWorkerEstado,
+        observaciones: editWorkerObservaciones || 'Modificado por asesor comercial.',
+        motivo: editWorkerMotivo,
+        cargasSocialesPatronalesPct: cost.cargasSocialesPatronalesPct,
+        cargasSocialesMonto: cost.cargasSocialesMonto,
+        feeMonto: cost.feeServicioMonto,
+        impuestosMonto: cost.impuestosMonto,
+        costoTotalTalento: cost.costoTotalTalento,
+        detallesCostos: {
+          cargasSocialesPatronalesPct: cost.cargasSocialesPatronalesPct,
+          cargasSocialesMonto: cost.cargasSocialesMonto,
+          feeServicioMonto: cost.feeServicioMonto,
+          impuestosMonto: cost.impuestosMonto,
+          costoTotalTalento: cost.costoTotalTalento,
+          desglose: cost.desglose,
+          impuestosDetalle: cost.impuestosDetalle
+        },
+        usuario: user.correo
+      });
+      triggerToast(`Colaborador ${editWorkerNombre} actualizado correctamente.`);
+      setEditingWorker(null);
+      fetchData();
+    } catch (err: any) {
+      setEditWorkerError(err.message || 'Error guardando datos del colaborador.');
+    } finally {
+      setIsSavingWorker(false);
+    }
+  };
+
+  const handleExportWorkersCsv = () => {
+    const listToExport = filteredWorkersList;
+    if (listToExport.length === 0) {
+      triggerToast('No hay trabajadores para exportar con los filtros seleccionados.', true);
+      return;
+    }
+    const headers = [
+      'ID Colaborador', 'Cliente ID', 'Empresa Cliente', 'Proyecto',
+      'Nombre Completo', 'Correo Electrónico', 'Documento Identidad', 'País',
+      'Puesto / Cargo', 'Modalidad', 'Fecha Ingreso', 'Salario Bruto', 'Moneda',
+      'Cargas Sociales Patronales (%)', 'Monto Cargas Sociales ($)',
+      'Fee EOR ($)', 'Impuestos Locales ($)', 'Costo Total Talento ($)', 'Estado'
+    ];
+    const rows = listToExport.map(w => {
+      const cost = w.detallesCostos || calcularCostoTalento(w.salario, w.pais, w.moneda || 'USD');
+      return [
+        `"${w.id}"`, `"${w.clienteId}"`, `"${w.clienteNombre || ''}"`, `"${w.proyecto || 'General'}"`,
+        `"${w.nombre}"`, `"${w.correo}"`, `"${w.documentoIdentidad || 'N/A'}"`, `"${w.pais}"`,
+        `"${w.puesto}"`, `"${w.modalidadTrabajo || 'Remoto'}"`, `"${w.fechaIngreso || ''}"`,
+        w.salario || 0, `"${w.moneda || 'USD'}"`,
+        w.cargasSocialesPatronalesPct || cost.cargasSocialesPatronalesPct || 0,
+        w.cargasSocialesMonto || cost.cargasSocialesMonto || 0,
+        w.feeMonto || (cost as any).feeServicioMonto || 0,
+        w.impuestosMonto || (cost as any).impuestosMonto || 0,
+        w.costoTotalTalento || (cost as any).costoTotal || (cost as any).costoTotalTalento || (w.salario * 1.3),
+        `"${w.estado}"`
+      ].join(',');
+    });
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Colaboradores_Proyectos_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    triggerToast('Reporte de trabajadores descargado exitosamente.');
   };
 
   const handleDeleteAllContracts = async () => {
@@ -1090,7 +1258,11 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
     const matchesSearch = c.empresa.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           c.nombreContacto.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           c.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCountry = checkCountryMatch(c.pais, c.esRegional, c.paisesOperacion);
+    let matchesCountry = checkCountryMatch(c.pais, c.esRegional, c.paisesOperacion);
+    if ((c.jerarquia === 'Supra' || c.tipoCliente === 'Holding' || c.tipoCliente === 'Supra' || c.id === 'CLI-876') && countryFilter !== 'All') {
+      const filialClients = allClientes.filter(f => f.id !== c.id && (f.supraclienteId === c.id || f.supraclienteId === 'CLI-876'));
+      matchesCountry = filialClients.some(f => checkCountryMatch(f.pais, f.esRegional, f.paisesOperacion));
+    }
     const matchesState = statusFilter === 'All' || c.estado === statusFilter;
     return matchesSearch && matchesCountry && matchesState;
   });
@@ -1201,6 +1373,23 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
                       </div>
                     </button>
                   )}
+
+                  <button
+                    onClick={() => { setActiveTab('trabajadores'); setSearchQuery(''); }}
+                    className={`w-full text-left px-3 py-2 rounded-xl font-bold transition-all flex items-center justify-between cursor-pointer ${
+                      activeTab === 'trabajadores' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Users className="w-3.5 h-3.5 shrink-0" />
+                      <span>Trabajadores de Proyectos</span>
+                    </div>
+                    {trabajadores.length > 0 && (
+                      <span className="bg-indigo-950/80 text-indigo-200 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-indigo-700/50">
+                        {trabajadores.length}
+                      </span>
+                    )}
+                  </button>
 
                   {isMenuVisible('solicitudes') && (
                     <button
@@ -1468,6 +1657,7 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
               {activeTab === 'panel' && tText('Panel de Control Comercial', lang)}
               {activeTab === 'solicitudes' && tText('Gestión de Solicitudes EOR (Leads)', lang)}
               {activeTab === 'clientes' && tText('Directorio de Clientes Asignados', lang)}
+              {activeTab === 'trabajadores' && tText('Gestión y Auditoría de Trabajadores de Proyectos', lang)}
               {activeTab === 'contratos' && tText('Contratos Comerciales Cliente-Proveedor', lang)}
               {activeTab === 'plantillas' && tText('Directorio de Plantillas de Contratos', lang)}
               {activeTab === 'seguimiento' && tText('Historial de Seguimiento Comercial', lang)}
@@ -1897,119 +2087,199 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
             {/* 3. CLIENTES ASIGNADOS */}
             {activeTab === 'clientes' && (
               <div id="asesor-tab-clientes" className="bg-white rounded-3xl border border-slate-100 shadow-xs p-6 space-y-6">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h3 className="text-base font-bold text-slate-950">Directorio y Jerarquía de Clientes</h3>
+                  <p className="text-slate-500 text-xs mt-0.5">Consulte y administre la información corporativa, matrices Supra y filiales asociadas.</p>
+                </div>
+
+                <ClientHierarchyTree
+                  clientes={filteredClientesList}
+                  allClientes={allClientes}
+                  workers={trabajadores}
+                  contratos={contratos}
+                  lang={lang}
+                  onEditClient={handleOpenEditCliente}
+                  onViewClient={(c) => setSelectedCliente(c)}
+                  onDeleteClient={(c) => setClienteToDelete(c)}
+                  isAsesor={true}
+                />
+              </div>
+            )}
+
+            {/* TRABAJADORES DE PROYECTOS (ASESOR & GESTIÓN COMERCIAL) */}
+            {activeTab === 'trabajadores' && (
+              <div id="asesor-tab-trabajadores" className="bg-white rounded-3xl border border-slate-100 shadow-xs p-6 space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
                   <div>
-                    <h3 className="text-base font-bold text-slate-950">Clientes Asignados</h3>
-                    <p className="text-slate-500 mt-0.5">Consulte la información general de sus cuentas asignadas.</p>
+                    <h3 className="text-base font-bold text-slate-950 flex items-center gap-2">
+                      <Users className="w-5 h-5 text-indigo-600" />
+                      <span>Control de Trabajadores de Proyectos</span>
+                    </h3>
+                    <p className="text-slate-500 text-xs mt-0.5">
+                      Visualice, edite y descargue la información de los colaboradores registrados por los clientes, con cálculo de cargas patronales, fee e impuestos.
+                    </p>
                   </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Buscar por Empresa o Contacto..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="border border-slate-200 px-3.5 py-2 rounded-xl focus:outline-none focus:border-indigo-500 text-xs"
-                    />
+
+                  {/* Actions & CSV Export */}
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={handleExportWorkersCsv}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow-xs transition-all cursor-pointer"
+                      title="Descargar reporte consolidado de colaboradores en CSV"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Descargar CSV</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={fetchData}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition-all cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Actualizar</span>
+                    </button>
                   </div>
                 </div>
 
+                {/* Filter bar */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
+                      Filtrar por Empresa Cliente
+                    </label>
+                    <select
+                      value={workerFilterClient}
+                      onChange={(e) => setWorkerFilterClient(e.target.value)}
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-indigo-500 text-slate-900 cursor-pointer"
+                    >
+                      <option value="All">🏢 Todos los Clientes ({allClientes.length})</option>
+                      {allClientes.map(c => (
+                        <option key={c.id} value={c.id}>{c.empresa} ({c.pais})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
+                      Filtrar por País del Trabajador
+                    </label>
+                    <select
+                      value={workerFilterCountry}
+                      onChange={(e) => setWorkerFilterCountry(e.target.value)}
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-indigo-500 text-slate-900 cursor-pointer"
+                    >
+                      <option value="All">🌎 Todos los Países</option>
+                      {LATAM_COUNTRIES.map(p => (
+                        <option key={p} value={p}>{COUNTRY_FLAGS[p] || '🌎'} {p}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
+                      Búsqueda Rápida
+                    </label>
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
+                      <input
+                        type="text"
+                        value={workerSearch}
+                        onChange={(e) => setWorkerSearch(e.target.value)}
+                        placeholder="Nombre, cédula, puesto, proyecto..."
+                        className="w-full h-9 pl-8 pr-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:border-indigo-500 text-slate-900"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Counter indicator */}
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span>Mostrando <strong>{filteredWorkersList.length}</strong> colaboradores registrados</span>
+                </div>
+
+                {/* Table */}
                 <div className="overflow-x-auto border border-slate-100 rounded-2xl">
-                  <table className="w-full text-left text-slate-600">
-                    <thead className="bg-slate-50 text-slate-700 uppercase tracking-wider font-bold">
+                  <table className="w-full text-left text-xs text-slate-600">
+                    <thead className="bg-slate-50 text-slate-700 uppercase tracking-wider text-[10px] font-bold">
                       <tr>
-                        <th className="px-4 py-3">ID / Empresa</th>
-                        <th className="px-4 py-3">País</th>
-                        <th className="px-4 py-3">Servicio Contratado</th>
-                        <th className="px-4 py-3">Contacto Principal</th>
-                        <th className="px-4 py-3">Estado Cliente</th>
-                        <th className="px-4 py-3">Contrato Comercial</th>
-                        <th className="px-4 py-3">Liberación EOR</th>
-                        <th className="px-4 py-3 text-right">Acciones</th>
+                        <th className="px-3.5 py-3">Colaborador / Documento</th>
+                        <th className="px-3 py-3">Empresa & Proyecto</th>
+                        <th className="px-3 py-3">País</th>
+                        <th className="px-3 py-3">Puesto / Mod.</th>
+                        <th className="px-3 py-3">Salario Base</th>
+                        <th className="px-3 py-3">Cargas Patronales</th>
+                        <th className="px-3 py-3">Fee EOR</th>
+                        <th className="px-3 py-3">Costo Total</th>
+                        <th className="px-3 py-3">Estado</th>
+                        <th className="px-3 py-3 text-right">Acción</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {filteredClientesList.length === 0 ? (
+                      {filteredWorkersList.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="px-4 py-8 text-center text-slate-400 font-semibold">
-                            No hay clientes asignados con los criterios seleccionados.
+                          <td colSpan={10} className="text-center py-12 text-slate-400">
+                            <Users className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400" />
+                            <p className="font-semibold">No se encontraron trabajadores con los filtros seleccionados.</p>
                           </td>
                         </tr>
                       ) : (
-                        filteredClientesList.map((client) => {
-                          const linkedContract = contratos.find(c => c.clienteId === client.id);
+                        filteredWorkersList.map(w => {
+                          const cost = w.detallesCostos || calcularCostoTalento(w.salario, w.pais, w.moneda || 'USD');
+                          const totalCost = w.costoTotalTalento || (cost as any).costoTotalTalento || (cost as any).costoTotal || (w.salario * 1.3);
+                          const socCharges = w.cargasSocialesMonto || cost.cargasSocialesMonto || 0;
+                          const feeVal = w.feeMonto || (cost as any).feeServicioMonto || 0;
                           return (
-                            <tr key={client.id} className="hover:bg-slate-50/50 transition-all">
-                              <td className="px-4 py-4">
-                                <div>
-                                  <span className="text-[9px] bg-slate-100 text-slate-700 font-bold px-1.5 py-0.5 rounded-md mb-1 inline-block">{client.id}</span>
-                                  <div className="font-bold text-slate-900">{client.empresa}</div>
-                                  <div className="text-[10px] text-slate-400 font-semibold">{client.razonSocial || 'No especificada'}</div>
+                            <tr key={w.id} className="hover:bg-slate-50 transition-colors">
+                              <td className="px-3.5 py-3">
+                                <div className="font-bold text-slate-900">{w.nombre}</div>
+                                <div className="text-[10px] text-slate-400 font-mono">
+                                  {w.documentoIdentidad ? `ID: ${w.documentoIdentidad}` : w.correo}
                                 </div>
                               </td>
-                              <td className="px-4 py-4 font-semibold text-slate-700">{client.pais}</td>
-                              <td className="px-4 py-4">
-                                <div>
-                                  <span className="font-bold">{client.servicioContratado}</span>
-                                  <p className="text-[10px] text-slate-400">Fee: {client.feePorEmpleado} {client.moneda}/emp</p>
-                                </div>
+                              <td className="px-3 py-3">
+                                <div className="font-semibold text-slate-800">{w.clienteNombre || 'Cliente'}</div>
+                                <div className="text-[10px] text-indigo-600 font-medium">{w.proyecto || 'Proyecto Principal'}</div>
                               </td>
-                              <td className="px-4 py-4 font-medium">
-                                <div>{client.nombreContacto}</div>
-                                <p className="text-[9px] text-slate-400">{client.correoContacto}</p>
+                              <td className="px-3 py-3 font-semibold text-slate-800">
+                                <span>{COUNTRY_FLAGS[w.pais] || '🌎'} {w.pais}</span>
                               </td>
-                              <td className="px-4 py-4">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                  client.estado === 'Activo' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'
-                                }`}>
-                                  {client.estado}
+                              <td className="px-3 py-3">
+                                <div className="font-medium text-slate-800">{w.puesto}</div>
+                                <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono">
+                                  {w.modalidadTrabajo || 'Remoto'}
                                 </span>
                               </td>
-                              <td className="px-4 py-4">
-                                {linkedContract ? (
-                                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                                    linkedContract.estado === 'Firmado por cliente' || linkedContract.estado === 'Aprobado' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
-                                  }`}>
-                                    {linkedContract.estado}
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-400 italic">No generado</span>
-                                )}
+                              <td className="px-3 py-3 font-mono font-bold text-slate-900">
+                                ${w.salario.toLocaleString()} {w.moneda}
                               </td>
-                              <td className="px-4 py-4">
+                              <td className="px-3 py-3 font-mono text-amber-700 font-semibold">
+                                +${socCharges.toLocaleString()} <span className="text-[10px] text-amber-600">({w.cargasSocialesPatronalesPct || cost.cargasSocialesPatronalesPct}%)</span>
+                              </td>
+                              <td className="px-3 py-3 font-mono text-indigo-700 font-semibold">
+                                +${feeVal.toLocaleString()}
+                              </td>
+                              <td className="px-3 py-3 font-mono font-bold text-slate-950 bg-indigo-50/40">
+                                ${Number(totalCost).toLocaleString()} {w.moneda}
+                              </td>
+                              <td className="px-3 py-3">
                                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                  client.estadoServicio === 'Servicio liberado' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                                  client.estadoServicio === 'Pago en revisión' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 animate-pulse' :
-                                  ['Pago rechazado', 'Servicio bloqueado', 'Servicio suspendido'].includes(client.estadoServicio || '') ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                                  'bg-amber-50 text-amber-700 border border-amber-200'
+                                  w.estado === 'Activo' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                                  w.estado === 'En revisión' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                  'bg-rose-50 text-rose-700 border border-rose-100'
                                 }`}>
-                                  {client.estadoServicio || 'Pendiente de contrato'}
+                                  {w.estado}
                                 </span>
                               </td>
-                              <td className="px-4 py-4 text-right whitespace-nowrap">
-                                <div className="flex items-center justify-end space-x-1.5">
-                                  <button
-                                    onClick={() => handleOpenEditCliente(client)}
-                                    className="border border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50/60 bg-white text-indigo-700 font-bold px-2.5 py-1.5 rounded-xl transition-all inline-flex items-center space-x-1 text-xs cursor-pointer shadow-3xs"
-                                    title="Editar datos y jerarquía del cliente"
-                                  >
-                                    <Edit2 className="w-3.5 h-3.5" />
-                                    <span>Editar</span>
-                                  </button>
-                                  <button
-                                    onClick={() => setSelectedCliente(client)}
-                                    className="border border-slate-200 hover:border-indigo-200 hover:bg-slate-50 text-indigo-600 font-bold px-2.5 py-1.5 rounded-xl transition-all inline-flex items-center space-x-1 text-xs cursor-pointer"
-                                  >
-                                    <span>Ver Ficha</span>
-                                    <ChevronRight className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    onClick={() => setClienteToDelete(client)}
-                                    title="Eliminar Cliente permanentemente"
-                                    className="p-1.5 border border-rose-200 hover:border-rose-400 bg-rose-50/70 hover:bg-rose-100 text-rose-600 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center shadow-3xs"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
+                              <td className="px-3 py-3 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditWorker(w)}
+                                  className="inline-flex items-center space-x-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer shadow-3xs"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                  <span>Editar Ficha</span>
+                                </button>
                               </td>
                             </tr>
                           );
@@ -3090,11 +3360,20 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
                           required
                         >
                           <option value="">-- Seleccionar Cliente --</option>
-                          {clientes.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.empresa} ({c.pais}) - Fee Base: ${c.feePorEmpleado}
-                            </option>
-                          ))}
+                          <optgroup label="📁 PAGUS LLC (Holding / Supra)">
+                            {clientes.filter(c => c.supraclienteId === 'CLI-876' || (c.supraclienteId && c.supraclienteId.toLowerCase().includes('pagus'))).map((c) => (
+                              <option key={c.id} value={c.id}>
+                                &nbsp;&nbsp;↳ {c.empresa} ({c.pais}) - Fee Base: ${c.feePorEmpleado}
+                              </option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="🏢 Clientes Directos">
+                            {clientes.filter(c => c.id !== 'CLI-876' && c.jerarquia !== 'Supra' && c.supraclienteId !== 'CLI-876' && (!c.supraclienteId || !c.supraclienteId.toLowerCase().includes('pagus'))).map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {c.empresa} ({c.pais}) - Fee Base: ${c.feePorEmpleado}
+                              </option>
+                            ))}
+                          </optgroup>
                         </select>
                       </div>
 
@@ -3617,47 +3896,98 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
                     </label>
                     <select
                       value={editClientTipoSocio}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setEditClientTipoSocio(val);
-                        if (val === 'Directo') {
-                          setEditClientSupraclienteId('');
-                        } else if (val === 'Filial') {
-                          if (!editClientSupraclienteId) {
-                            const pagus = allClientes.find(c => c.empresa.toLowerCase().includes('pagus'));
-                            if (pagus) setEditClientSupraclienteId(pagus.id);
-                          }
-                        } else if (val === 'Holding') {
-                          setEditClientSupraclienteId('supracliente-eor-peo@grupostt.com');
-                        }
-                      }}
+                      onChange={(e) => setEditClientTipoSocio(e.target.value)}
                       className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
                     >
-                      <option value="Directo">Directo (Cliente Individual)</option>
-                      <option value="Filial">Filial (Asociado a un Supra Cliente / Holding)</option>
-                      <option value="Holding">Supra Cliente (Holding Matriz Principal)</option>
-                      <option value="Partners">Partners (Canal / Agencia)</option>
+                      <option value="Directo">Cliente Directo</option>
+                      <option value="Partners">Partner</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                    <label className="text-[10px] font-bold text-slate-800 uppercase tracking-wider block mb-1">
                       Cliente Propietario (Jerarquía Corporativa)
+                    </label>
+                    <select
+                      value={editClientJerarquia}
+                      onChange={(e) => {
+                        const val = e.target.value as any;
+                        setEditClientJerarquia(val);
+                        if (val === 'Directo') {
+                          setEditClientSupraclienteId('');
+                        } else if (val === 'Supra') {
+                          setEditClientSupraclienteId('supracliente-eor-peo@grupostt.com');
+                        } else if (val === 'Filial') {
+                          if (!editClientSupraclienteId || editClientSupraclienteId === 'supracliente-eor-peo@grupostt.com') {
+                            const firstSupra = allClientes.find(cl => 
+                              cl.id === 'CLI-876' || 
+                              cl.empresa.toLowerCase().includes('pagus') ||
+                              cl.tipoCliente === 'Holding' ||
+                              cl.tipoCliente === 'Supra' ||
+                              (cl as any).jerarquia === 'Supra' ||
+                              cl.supraclienteId === 'supracliente-eor-peo@grupostt.com'
+                            );
+                            if (firstSupra) {
+                              setEditClientSupraclienteId(firstSupra.id);
+                            } else if (allClientes.length > 0) {
+                              setEditClientSupraclienteId(allClientes[0].id);
+                            }
+                          }
+                        }
+                      }}
+                      className="w-full h-9 px-3 bg-white border border-indigo-200 rounded-xl text-indigo-950 text-xs font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer shadow-3xs"
+                    >
+                      <option value="Supra">Supra (Holding / Matriz Principal)</option>
+                      <option value="Filial">Filial Asociada</option>
+                      <option value="Directo">Cliente Directo Individual (Sin Jerarquía Holding)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Cuando se selecciona Filial Asociada, DEBAJO aparece la lista de clientes supras para asociarlo */}
+                {editClientJerarquia === 'Filial' && (
+                  <div className="p-3 bg-indigo-50/80 border border-indigo-200 rounded-2xl animate-fade-in space-y-1">
+                    <label className="text-[10px] font-bold text-indigo-950 uppercase tracking-wider block">
+                      Seleccionar Cliente Supra Propietario para Asociar <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={editClientSupraclienteId}
                       onChange={(e) => setEditClientSupraclienteId(e.target.value)}
-                      className="w-full h-9 px-3 bg-white border border-indigo-200 rounded-xl text-indigo-950 text-xs font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer shadow-3xs"
+                      className="w-full h-9 px-3 bg-white border border-indigo-300 rounded-xl text-indigo-950 text-xs font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer shadow-3xs"
                     >
-                      <option value="">🏢 Cliente Directo Individual (Sin Propietario / Holding)</option>
-                      <optgroup label="🏢 Empresas Propietarias / Holdings Registrados">
+                      <option value="">-- Seleccionar Empresa Supra Matriz --</option>
+                      <optgroup label="🏢 Clientes Supra / Matriz Registrados">
                         {allClientes
                           .filter(cl => {
                             if (cl.id === editingCliente.id) return false;
-                            const emp = (cl.empresa || '').toLowerCase();
-                            const cont = (cl.nombreContacto || '').toLowerCase();
-                            if (emp.includes('jose andres') || emp.includes('henao') || cont.includes('henao')) return false;
-                            return true;
+                            return (
+                              cl.id === 'CLI-876' ||
+                              cl.empresa.toLowerCase().includes('pagus') ||
+                              cl.tipoCliente === 'Holding' ||
+                              cl.tipoCliente === 'Supra' ||
+                              (cl as any).jerarquia === 'Supra' ||
+                              cl.supraclienteId === 'supracliente-eor-peo@grupostt.com'
+                            );
+                          })
+                          .map(cl => (
+                            <option key={cl.id} value={cl.id}>
+                              ★ {cl.empresa} ({cl.id} • {cl.pais}) [Matriz Supra]
+                            </option>
+                          ))}
+                      </optgroup>
+                      <optgroup label="🏢 Otras Empresas Clientes Registradas (Vincular como Matriz)">
+                        {allClientes
+                          .filter(cl => {
+                            if (cl.id === editingCliente.id) return false;
+                            const isAlreadySupra = (
+                              cl.id === 'CLI-876' ||
+                              cl.empresa.toLowerCase().includes('pagus') ||
+                              cl.tipoCliente === 'Holding' ||
+                              cl.tipoCliente === 'Supra' ||
+                              (cl as any).jerarquia === 'Supra' ||
+                              cl.supraclienteId === 'supracliente-eor-peo@grupostt.com'
+                            );
+                            return !isAlreadySupra;
                           })
                           .map(cl => (
                             <option key={cl.id} value={cl.id}>
@@ -3667,20 +3997,21 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
                       </optgroup>
                       <optgroup label="🌐 Cuentas Global Holding">
                         <option value="supracliente-eor-peo@grupostt.com">
-                          Supra Cliente Global Holding
+                          Supra Cliente Global Holding (STT Latam)
                         </option>
                       </optgroup>
                     </select>
+                    <p className="text-[9.5px] text-indigo-700 font-medium">
+                      Esta filial se consolidará automáticamente bajo la cuenta del Supra Cliente seleccionado.
+                    </p>
                   </div>
-                </div>
+                )}
 
                 <p className="text-[10px] text-slate-500 font-medium">
-                  {editClientSupraclienteId 
-                    ? `Este cliente operará bajo la supervisión y consolidación de: ${
-                        allClientes.find(cl => cl.id === editClientSupraclienteId || cl.empresa.toLowerCase() === editClientSupraclienteId.toLowerCase())?.empresa ||
-                        (editClientSupraclienteId === 'CLI-876' || editClientSupraclienteId.toLowerCase().includes('pagus') ? 'PAGUS LLC' : '') ||
-                        (editClientSupraclienteId === 'supracliente-eor-peo@grupostt.com' ? 'Supra Cliente Global Holding' : editClientSupraclienteId)
-                      }. Al ingresar el Supra Cliente con su usuario, podrá ver y gestionar a esta empresa en su cuenta.`
+                  {editClientJerarquia === 'Supra'
+                    ? 'Este cliente operará como Matriz (Supra Cliente) y consolidará en su cuenta a todas sus filiales asociadas.'
+                    : editClientJerarquia === 'Filial'
+                    ? `Filial asociada bajo la supervisión de: ${allClientes.find(cl => cl.id === editClientSupraclienteId || cl.empresa.toLowerCase() === editClientSupraclienteId.toLowerCase())?.empresa || (editClientSupraclienteId === 'CLI-876' || editClientSupraclienteId.toLowerCase().includes('pagus') ? 'PAGUS LLC' : '') || (editClientSupraclienteId === 'supracliente-eor-peo@grupostt.com' ? 'Supra Cliente Global Holding' : editClientSupraclienteId || 'Pendiente de selección')}`
                     : 'Cliente directo e individual sin dependencia de ningún grupo holding.'}
                 </p>
               </div>
@@ -3845,7 +4176,259 @@ export default function AsesorDashboard({ user, lang, onLanguageChange, onLogout
         </div>
       )}
 
-      {/* C. CONTRATO DETAILS MODAL */}
+      {/* MODAL EDICIÓN Y GESTIÓN DE TRABAJADOR (ASESOR) */}
+      {editingWorker && (
+        <div id="asesor-edit-worker-modal" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-100 overflow-hidden text-xs flex flex-col max-h-[90vh]">
+            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-900 text-white p-5 flex justify-between items-center shrink-0">
+              <div>
+                <h3 className="text-sm font-bold flex items-center space-x-2">
+                  <Edit2 className="w-4 h-4 text-indigo-300" />
+                  <span>Editar Ficha de Colaborador: {editWorkerNombre}</span>
+                </h3>
+                <p className="text-[10px] text-indigo-200 mt-0.5">
+                  ID: <span className="font-mono font-bold text-white">{editingWorker.id}</span> • Empresa: <span className="font-bold text-white">{editingWorker.clienteNombre}</span>
+                </p>
+              </div>
+              <button 
+                onClick={() => setEditingWorker(null)} 
+                className="text-indigo-200 hover:text-white font-bold text-lg cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditWorker} className="p-6 overflow-y-auto space-y-4 flex-1">
+              {editWorkerError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl font-bold flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{editWorkerError}</span>
+                </div>
+              )}
+
+              {/* SECCIÓN 1: DATOS PERSONALES Y PROYECTO */}
+              <div className="space-y-3 bg-slate-50/60 p-4 rounded-2xl border border-slate-200/80">
+                <h4 className="text-indigo-950 font-bold text-xs uppercase tracking-wider flex items-center space-x-2 border-b border-slate-200/80 pb-2">
+                  <Users className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>1. Identificación y Proyecto del Colaborador</span>
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      Nombre Completo <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editWorkerNombre}
+                      onChange={(e) => setEditWorkerNombre(e.target.value)}
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-semibold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      Documento Identidad / Cédula / DNI
+                    </label>
+                    <input
+                      type="text"
+                      value={editWorkerDocumento}
+                      onChange={(e) => setEditWorkerDocumento(e.target.value)}
+                      placeholder="Ej. 1-1456-0789"
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      Correo Electrónico <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={editWorkerCorreo}
+                      onChange={(e) => setEditWorkerCorreo(e.target.value)}
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      Puesto / Cargo <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editWorkerPuesto}
+                      onChange={(e) => setEditWorkerPuesto(e.target.value)}
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-semibold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      Proyecto Asociado
+                    </label>
+                    <input
+                      type="text"
+                      value={editWorkerProyecto}
+                      onChange={(e) => setEditWorkerProyecto(e.target.value)}
+                      placeholder="Ej: Proyecto Alpha"
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      Modalidad de Trabajo
+                    </label>
+                    <select
+                      value={editWorkerModalidad}
+                      onChange={(e) => setEditWorkerModalidad(e.target.value as any)}
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-semibold focus:border-indigo-500 cursor-pointer"
+                    >
+                      <option value="Remoto">Remoto</option>
+                      <option value="Híbrido">Híbrido</option>
+                      <option value="Presencial">Presencial</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECCIÓN 2: CONDICIONES ECONÓMICAS Y CÁLCULO DE COSTO TALENTO */}
+              <div className="space-y-3 bg-slate-50/60 p-4 rounded-2xl border border-slate-200/80">
+                <h4 className="text-indigo-950 font-bold text-xs uppercase tracking-wider flex items-center space-x-2 border-b border-slate-200/80 pb-2">
+                  <DollarSign className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>2. Salario, País y Cálculo de Cargas Sociales</span>
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      País de Contratación / Ley Laboral <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={editWorkerPais}
+                      onChange={(e) => setEditWorkerPais(e.target.value)}
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-bold focus:border-indigo-500 cursor-pointer"
+                    >
+                      {LATAM_COUNTRIES.map(p => (
+                        <option key={p} value={p}>{COUNTRY_FLAGS[p] || '🌎'} {p}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      Salario Bruto ({editingWorker.moneda || 'USD'}) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      step="any"
+                      value={editWorkerSalario}
+                      onChange={(e) => setEditWorkerSalario(Number(e.target.value))}
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-mono font-bold focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                {/* LIVE TALENT COST BREAKDOWN CARD */}
+                {workerEditCostEstimate && (
+                  <div className="p-3 bg-white rounded-xl border border-indigo-100 shadow-2xs space-y-2">
+                    <span className="text-[10px] font-bold text-indigo-950 uppercase tracking-wider block">
+                      Desglose Legal en {editWorkerPais} ({editingWorker.moneda || 'USD'})
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px]">
+                      <div className="p-2 bg-slate-50 rounded-lg">
+                        <span className="text-[9px] text-slate-500 block uppercase font-bold">Salario</span>
+                        <strong className="font-mono text-slate-900">${workerEditCostEstimate.salarioBruto.toLocaleString()}</strong>
+                      </div>
+                      <div className="p-2 bg-amber-50 rounded-lg border border-amber-200/50">
+                        <span className="text-[9px] text-amber-700 block uppercase font-bold">Cargas ({workerEditCostEstimate.cargasSocialesPatronalesPct}%)</span>
+                        <strong className="font-mono text-amber-700">+${workerEditCostEstimate.cargasSocialesMonto.toLocaleString()}</strong>
+                      </div>
+                      <div className="p-2 bg-indigo-50 rounded-lg border border-indigo-200/50">
+                        <span className="text-[9px] text-indigo-700 block uppercase font-bold">Fee EOR</span>
+                        <strong className="font-mono text-indigo-700">+${workerEditCostEstimate.feeServicioMonto.toLocaleString()}</strong>
+                      </div>
+                      <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200/50">
+                        <span className="text-[9px] text-emerald-800 block uppercase font-bold">Costo Total</span>
+                        <strong className="font-mono text-emerald-900 font-extrabold">${workerEditCostEstimate.costoTotalTalento.toLocaleString()}</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      Estado Operativo del Colaborador
+                    </label>
+                    <select
+                      value={editWorkerEstado}
+                      onChange={(e) => setEditWorkerEstado(e.target.value)}
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-bold focus:border-indigo-500 cursor-pointer"
+                    >
+                      <option value="Activo">Activo</option>
+                      <option value="En revisión">En revisión</option>
+                      <option value="Inactivo">Inactivo</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      Observaciones
+                    </label>
+                    <input
+                      type="text"
+                      value={editWorkerObservaciones}
+                      onChange={(e) => setEditWorkerObservaciones(e.target.value)}
+                      placeholder="Notas sobre el colaborador..."
+                      className="w-full h-9 px-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block mb-1">
+                    Motivo / Justificación del Ajuste <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editWorkerMotivo}
+                    onChange={(e) => setEditWorkerMotivo(e.target.value)}
+                    placeholder="Ej. Ajuste salarial acordado con cliente / corrección de cargo..."
+                    className="w-full h-9 px-3 bg-rose-50/50 border border-rose-200 rounded-xl text-slate-900 text-xs font-semibold focus:bg-white focus:border-rose-500"
+                  />
+                </div>
+              </div>
+
+              {/* FOOTER ACTIONS */}
+              <div className="flex items-center justify-end space-x-2 border-t border-slate-200 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingWorker(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition text-xs cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingWorker}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition text-xs flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingWorker ? (
+                    <span>Guardando...</span>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Guardar Cambios</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       {selectedContrato && (
         <div id="asesor-contract-modal" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full border border-slate-100 overflow-hidden text-xs flex flex-col max-h-[92vh]">

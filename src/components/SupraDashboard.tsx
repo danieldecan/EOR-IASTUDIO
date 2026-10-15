@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { api } from '../api';
-import { Cliente, Factura, User, Pago, PagoContadoUSD, HistorialLiberacion, Language, i18n, LATAM_COUNTRIES, COUNTRY_FLAGS } from '../types';
+import { Cliente, Factura, User, Pago, PagoContadoUSD, HistorialLiberacion, Language, i18n, LATAM_COUNTRIES, COUNTRY_FLAGS, Trabajador } from '../types';
 import OperationalAlertsPanel from './OperationalAlertsPanel';
 import ManagementReportsPanel from './ManagementReportsPanel';
 import LanguageSelector from './LanguageSelector';
 import UserManualModal from './UserManualModal';
+import ClientHierarchyTree from './ClientHierarchyTree';
 import { PWAInstallButton } from './PWAInstallButton';
 import { tText, translateStatus, tr, translateRole } from '../utils/i18n';
 import { 
   Building2, Users, Receipt, Calendar, CreditCard, 
   Wallet, Printer, CheckCircle, ArrowRight, Info, HelpCircle, BookOpen,
   FileText, ShieldAlert, ShieldCheck, BarChart3, TrendingUp, Globe, Gift, Plus, AlertCircle, BadgeHelp,
-  Coins, Eye, LogOut
+  Coins, Eye, LogOut, X
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
 
@@ -23,7 +24,12 @@ interface SupraDashboardProps {
 }
 
 export default function SupraDashboard({ user, lang, onLanguageChange, onLogout }: SupraDashboardProps) {
+  const [holdingEntity, setHoldingEntity] = useState<Cliente | null>(null);
+  const [masterClientes, setMasterClientes] = useState<Cliente[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [workers, setWorkers] = useState<Trabajador[]>([]);
+  const [contratos, setContratos] = useState<any[]>([]);
+  const [selectedFilialModal, setSelectedFilialModal] = useState<Cliente | null>(null);
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [beneficios, setBeneficios] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
@@ -88,13 +94,18 @@ export default function SupraDashboard({ user, lang, onLanguageChange, onLogout 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [allClientes, allFacturas, allBeneficios, allPagosContado, allHistorialLiberacion] = await Promise.all([
+      const [allClientes, allFacturas, allBeneficios, allPagosContado, allHistorialLiberacion, allWorkers, allContracts] = await Promise.all([
         api.getClientes(),
         api.getFacturas(),
         api.getBeneficios(),
         api.getPagosContado().catch(() => []),
-        api.getHistorialLiberacion().catch(() => [])
+        api.getHistorialLiberacion().catch(() => []),
+        api.getTrabajadores().catch(() => []),
+        api.getContratosComerciales().catch(() => [])
       ]);
+      setMasterClientes(allClientes);
+      setWorkers(allWorkers);
+      setContratos(allContracts);
       
       // Filter clients that belong to this supracliente
       const userEmailLower = (user.correo || '').toLowerCase().trim();
@@ -110,31 +121,43 @@ export default function SupraDashboard({ user, lang, onLanguageChange, onLogout 
 
       const isGlobalHoldingAdmin = userEmailLower === 'supracliente-eor-peo@grupostt.com';
 
-      const managedClientes = allClientes.filter(c => {
-        // Direct assignment to this user's email
-        if (c.supraclienteId && c.supraclienteId.toLowerCase().trim() === userEmailLower) return true;
-        // The holding client itself (e.g. PAGUS LLC CLI-876)
+      // Identify the parent Supra Holding entity (e.g. PAGUS LLC CLI-876)
+      const holdingMatrizClient = parentClient || (effectiveParentId ? allClientes.find(c => c.id === effectiveParentId) : null) || allClientes.find(c => c.id === 'CLI-876');
+      setHoldingEntity(holdingMatrizClient || null);
+
+      // Check if a client is the holding parent entity itself
+      const isHoldingMatriz = (c: Cliente) => {
+        if (holdingMatrizClient && c.id === holdingMatrizClient.id) return true;
         if (effectiveParentId && c.id === effectiveParentId) return true;
-        // Subsidiary whose supraclienteId is the holding client ID
+        if (c.id === 'CLI-876') return true;
+        if (c.jerarquia === 'Supra' || c.tipoCliente === 'Holding' || c.tipoCliente === 'Supra') return true;
+        if (c.empresa && c.empresa.toLowerCase().includes('pagus') && (!c.supraclienteId || c.supraclienteId === 'supracliente-eor-peo@grupostt.com')) return true;
+        return false;
+      };
+
+      // Filter subsidiaries/filiales belonging to this Supra
+      const subsidiaryFiliales = allClientes.filter(c => {
+        // Exclude the holding entity itself: the user explicitly specified that the supra itself must NOT appear
+        if (isHoldingMatriz(c)) return false;
+
+        // Check if this subsidiary belongs to this holding/supra
+        if (c.supraclienteId && c.supraclienteId.toLowerCase().trim() === userEmailLower) return true;
         if (effectiveParentId && c.supraclienteId && c.supraclienteId.trim() === effectiveParentId) return true;
-        // Subsidiary whose supraclienteId is any PAGUS ID if parent is PAGUS
-        if (parentEmpresaLower.includes('pagus') || (userEmailLower === 'guadalupe.gonzalez@grupostt.com')) {
-          if (c.id === 'CLI-876') return true;
+        if (parentEmpresaLower.includes('pagus') || userEmailLower === 'guadalupe.gonzalez@grupostt.com' || (holdingMatrizClient && holdingMatrizClient.id === 'CLI-876')) {
           if (c.supraclienteId === 'CLI-876' || c.supraclienteId === 'guadalupe.gonzalez@grupostt.com') return true;
           if (c.supraclienteId && c.supraclienteId.toLowerCase().includes('pagus')) return true;
           if (c.proyecto && c.proyecto.toLowerCase().includes('pagus')) return true;
         }
-        // Subsidiary whose supraclienteId is the parent company name
         if (parentEmpresaLower && c.supraclienteId && c.supraclienteId.toLowerCase().trim() === parentEmpresaLower) return true;
-        // Match user's explicit ID
         if ((user as any).id && c.supraclienteId === (user as any).id) return true;
         return false;
       });
 
-      // If demo supra account or global holding, show all clients; otherwise show strictly managed clients
+      // Operational clients: strictly the subsidiaries in their countries
       const effectiveClientes = isGlobalHoldingAdmin 
-        ? allClientes 
-        : (managedClientes.length > 0 ? managedClientes : (userEmailLower === 'supracliente-eor-peo@grupostt.com' ? allClientes : []));
+        ? allClientes.filter(c => !isHoldingMatriz(c)) 
+        : subsidiaryFiliales;
+
       setClientes(effectiveClientes);
 
       // Filter invoices for these clients
@@ -276,11 +299,8 @@ export default function SupraDashboard({ user, lang, onLanguageChange, onLogout 
 
   const checkCountryMatch = (itemPais?: string, isRegional?: boolean, opCountries?: string[]) => {
     if (countryFilter === 'All') return true;
-    if (countryFilter === 'Regional') {
-      return isRegional || itemPais === 'Regional';
-    }
     if (itemPais === countryFilter) return true;
-    if ((isRegional || itemPais === 'Regional') && opCountries && opCountries.includes(countryFilter)) return true;
+    if (opCountries && opCountries.includes(countryFilter)) return true;
     return false;
   };
 
@@ -527,8 +547,15 @@ export default function SupraDashboard({ user, lang, onLanguageChange, onLogout 
               {activeTab === 'tickets' && tText('Centro de Soporte y Casos', lang)}
               {activeTab === 'reports' && tText('Reportes de Gestión Corporativa', lang)}
             </h2>
-            <p className="text-[10px] text-slate-400 font-semibold">
-              {tText('Titular:', lang)} <strong className="text-slate-700">{user.nombre}</strong> ({user.correo})
+            <p className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5 flex-wrap">
+              <span>{tText('Titular:', lang)} <strong className="text-slate-700">{user.nombre}</strong> ({user.correo})</span>
+              {holdingEntity && (
+                <>
+                  <span>&bull;</span>
+                  <span>Corporación: <strong className="text-indigo-900 font-bold">{holdingEntity.empresa}</strong></span>
+                  <span className="text-[9px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded border border-amber-200">Holding Matriz</span>
+                </>
+              )}
             </p>
           </div>
 
@@ -575,22 +602,6 @@ export default function SupraDashboard({ user, lang, onLanguageChange, onLogout 
                 🌎 Todas las Filiales ({clientes.length})
               </button>
 
-              {clientes.some(c => c.pais === 'Regional' || c.esRegional) && (
-                <button
-                  type="button"
-                  onClick={() => setCountryFilter('Regional')}
-                  className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    countryFilter === 'Regional'
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
-                  }`}
-                >
-                  <span>🌎 Regional LATAM</span>
-                  <span className="text-[9px] bg-indigo-200/60 px-1.5 py-0.5 rounded-full font-bold">
-                    {clientes.filter(c => c.pais === 'Regional' || c.esRegional).length}
-                  </span>
-                </button>
-              )}
 
               {holdingCountries.map(country => {
                 const count = clientes.filter(c => c.pais === country || (c.paisesOperacion && c.paisesOperacion.includes(country))).length;
@@ -865,116 +876,27 @@ export default function SupraDashboard({ user, lang, onLanguageChange, onLogout 
           {/* CLIENTS TAB */}
           {activeTab === 'clients' && (
             <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6 animate-fade-in print:hidden">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Consulta de Clientes de la Corporación</h2>
-                <p className="text-slate-500 text-xs">Información comercial, contratos activos, y sociedades vinculadas para la facturación.</p>
-              </div>
-
-              {filteredClientes.length === 0 ? (
-                <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400 font-semibold">
-                  No hay filiales asociadas para el país seleccionado ({countryFilter}).
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div>
+                  <h2 className="text-lg font-black text-slate-900">Consulta de Clientes de la Corporación</h2>
+                  <p className="text-slate-500 text-xs">Empresas filiales y subsidiarias operando localmente bajo la jerarquía del Holding.</p>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredClientes.map(c => (
-                    <div key={c.id} className="border border-slate-100 rounded-3xl p-5 hover:shadow-md transition-all space-y-4 bg-slate-50/50">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-                            <Building2 className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-slate-900">{c.empresa}</h3>
-                            <span className="text-[10px] text-slate-400 font-mono">ID: {c.id}</span>
-                          </div>
-                        </div>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          c.estado === 'Activo' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
-                        }`}>
-                          {c.estado}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 text-xs border-t border-b border-slate-100 py-3 font-semibold text-slate-600">
-                        <div>
-                          <span className="text-[10px] text-slate-400 block font-normal">Servicio Contratado:</span>
-                          <span className="text-slate-900">{c.servicioContratado}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-400 block font-normal">País de Operación:</span>
-                          <span className="text-slate-900 font-bold flex items-center gap-1.5">
-                            <span>{COUNTRY_FLAGS[c.pais] || '🌎'}</span>
-                            <span>{c.pais}</span>
-                          </span>
-                          {c.esRegional && c.paisesOperacion && c.paisesOperacion.length > 0 && (
-                            <span className="text-[9px] text-slate-400 block truncate max-w-[160px]" title={c.paisesOperacion.join(', ')}>
-                              {c.paisesOperacion.join(', ')}
-                            </span>
-                          )}
-                        </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-normal">Razón Social:</span>
-                        <span className="text-slate-900">{c.razonSocial || 'Tech Solutions S.A.'}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-normal">Cédula Jurídica / ID Legal:</span>
-                        <span className="text-slate-900 font-mono">{c.cedulaJuridica || '3-101-29472'}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-normal">Frecuencia Nómina:</span>
-                        <span className="text-slate-900">{c.frecuenciaNomina || 'Mensual'}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block font-normal">Fecha Inicio Contrato:</span>
-                        <span className="text-slate-900 font-mono">{c.fechaInicioContrato || '2026-01-15'}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1 text-xs">
-                      <span className="text-[10px] text-slate-400 block">Contacto Comercial del Cliente:</span>
-                      <div className="flex justify-between text-slate-800 font-semibold">
-                        <span>{c.nombreContacto} ({c.posicion || 'Director Financiero'})</span>
-                        <span className="text-indigo-600 font-mono">{c.telefonoContacto}</span>
-                      </div>
-                      <span className="text-slate-500 font-mono block">{c.correoContacto}</span>
-                    </div>
-
-                    {c.sociedadContratacion && (
-                      <div className="bg-indigo-50 p-3 rounded-xl text-xs font-semibold text-indigo-900">
-                        <span className="text-[9px] text-indigo-600 block uppercase font-black">Sociedad Contratación y Facturación:</span>
-                        {c.sociedadContratacion}
-                      </div>
-                    )}
-
-                    <div className="pt-2 border-t border-slate-100 space-y-2">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400 font-bold">Estado EOR:</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          c.estadoServicio === 'Servicio liberado' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                          c.estadoServicio === 'Pago en revisión' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100 animate-pulse' :
-                          ['Pago rechazado', 'Servicio bloqueado', 'Servicio suspendido'].includes(c.estadoServicio || '') ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                          'bg-amber-50 text-amber-700 border border-amber-200'
-                        }`}>
-                          {c.estadoServicio || 'Pendiente de contrato'}
-                        </span>
-                      </div>
-                      
-                      <button
-                        onClick={() => {
-                          setShowManualReleaseModal(c);
-                          setManualReleaseEstado(c.estadoServicio || 'Servicio liberado');
-                          setManualReleaseMotivo('');
-                          setManualReleaseObs('');
-                        }}
-                        className="w-full text-center py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl transition text-[10px]"
-                      >
-                        Corregir Estado de Liberación
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                {holdingEntity && (
+                  <span className="text-xs bg-indigo-50 text-indigo-700 font-bold px-3 py-1.5 rounded-xl border border-indigo-200">
+                    🏢 Corporación: {holdingEntity.empresa} ({clientes.length} filiales)
+                  </span>
+                )}
               </div>
-            )}
+
+              <ClientHierarchyTree
+                clientes={filteredClientes}
+                allClientes={masterClientes}
+                workers={workers}
+                contratos={contratos}
+                lang={lang}
+                onViewClient={(c) => setSelectedFilialModal(c)}
+                isAsesor={false}
+              />
 
               {/* HISTORIAL / LOG DE TRAZABILIDAD */}
               <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4 pt-6 mt-6">
@@ -2632,6 +2554,110 @@ export default function SupraDashboard({ user, lang, onLanguageChange, onLogout 
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* FILIAL DETAILS MODAL */}
+      {selectedFilialModal && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-5 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+                  <Building2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-lg">{selectedFilialModal.empresa}</h3>
+                  <p className="text-xs text-slate-400 font-mono">ID: {selectedFilialModal.id} &bull; Filial de {holdingEntity?.empresa || 'Holding Matriz'}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedFilialModal(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Grid details */}
+            <div className="grid grid-cols-2 gap-3 text-xs font-semibold text-slate-600">
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-slate-400 block font-normal uppercase">País de Operación</span>
+                <span className="text-slate-950 font-bold flex items-center gap-1.5 mt-0.5">
+                  <span>{COUNTRY_FLAGS[selectedFilialModal.pais] || '📍'}</span>
+                  <span>{selectedFilialModal.pais}</span>
+                </span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-slate-400 block font-normal uppercase">Servicio Contratado</span>
+                <span className="text-slate-950 font-bold mt-0.5 block">{selectedFilialModal.servicioContratado}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-slate-400 block font-normal uppercase">Fee por Colaborador</span>
+                <span className="text-indigo-950 font-extrabold font-mono mt-0.5 block">${selectedFilialModal.feePorEmpleado} {selectedFilialModal.moneda}/mes</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-slate-400 block font-normal uppercase">Frecuencia de Nómina</span>
+                <span className="text-slate-950 font-bold mt-0.5 block">{selectedFilialModal.frecuenciaNomina || 'Mensual'}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-slate-400 block font-normal uppercase">Razón Social</span>
+                <span className="text-slate-950 font-bold mt-0.5 block">{selectedFilialModal.razonSocial || 'N/A'}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-slate-400 block font-normal uppercase">Cédula Jurídica / ID Fiscal</span>
+                <span className="text-slate-950 font-mono mt-0.5 block">{selectedFilialModal.cedulaJuridica || 'N/A'}</span>
+              </div>
+            </div>
+
+            {/* Contact info */}
+            <div className="p-3.5 bg-indigo-50/60 rounded-xl text-xs space-y-1 border border-indigo-100/60">
+              <span className="text-[10px] text-indigo-700 font-bold uppercase tracking-wider block">Contacto Comercial</span>
+              <div className="flex justify-between text-slate-800 font-bold">
+                <span>{selectedFilialModal.nombreContacto || 'N/A'} ({selectedFilialModal.posicion || 'Contacto'})</span>
+                <span className="text-indigo-600 font-mono">{selectedFilialModal.telefonoContacto || ''}</span>
+              </div>
+              <span className="text-slate-500 font-mono text-[11px] block">{selectedFilialModal.correoContacto}</span>
+            </div>
+
+            {/* Service status */}
+            <div className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center border border-slate-200/80">
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block">Estado EOR</span>
+                <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold mt-1 ${
+                  selectedFilialModal.estadoServicio === 'Servicio liberado' ? 'bg-emerald-100 text-emerald-800' :
+                  selectedFilialModal.estadoServicio === 'Pago en revisión' ? 'bg-indigo-100 text-indigo-800 animate-pulse' :
+                  'bg-amber-100 text-amber-800'
+                }`}>
+                  {selectedFilialModal.estadoServicio || 'Pendiente de contrato'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowManualReleaseModal(selectedFilialModal);
+                  setManualReleaseEstado(selectedFilialModal.estadoServicio || 'Servicio liberado');
+                  setManualReleaseMotivo('');
+                  setManualReleaseObs('');
+                  setSelectedFilialModal(null);
+                }}
+                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-3xs"
+              >
+                Corregir Estado de Liberación
+              </button>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedFilialModal(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

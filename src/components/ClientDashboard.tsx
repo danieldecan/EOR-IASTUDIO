@@ -66,6 +66,7 @@ import {
 import LanguageSelector from './LanguageSelector';
 import UserManualModal from './UserManualModal';
 import { PWAInstallButton } from './PWAInstallButton';
+import ClientFolderSelector from './ClientFolderSelector';
 import { BookOpen } from 'lucide-react';
 import { tText, translateStatus, tr, translateRole } from '../utils/i18n';
 
@@ -86,6 +87,7 @@ export default function ClientDashboard({ user, lang, onLanguageChange, onLogout
   // Client and operational states
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [allClientes, setAllClientes] = useState<Cliente[]>([]);
+  const [masterClientes, setMasterClientes] = useState<Cliente[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>(user.clienteId || '');
   const [workers, setWorkers] = useState<Trabajador[]>([]);
   const [cargasSociales, setCargasSociales] = useState<CargaSocial[]>([]);
@@ -436,17 +438,36 @@ En fe de lo cual, firman las partes interesadas de conformidad.`;
     try {
       // Fetch Clients
       const clientsList = await api.getClientes();
-      setAllClientes(clientsList);
+      setMasterClientes(clientsList);
+      
+      // If user is a supracliente or associated with a holding like PAGUS LLC, show ONLY their child filiales!
+      const userIsSupra = user.rol === 'supracliente' || user.clienteId === 'CLI-876' || (user.correo && user.correo.toLowerCase().includes('pagus'));
+      let visibleClients = clientsList;
+      if (userIsSupra) {
+        const filiales = clientsList.filter(c => 
+          c.id !== 'CLI-876' && 
+          c.jerarquia !== 'Supra' && 
+          c.tipoCliente !== 'Holding' &&
+          (c.supraclienteId === 'CLI-876' || (c.supraclienteId && c.supraclienteId.toLowerCase().includes('pagus')) || (c.correoContacto && c.correoContacto.toLowerCase() === user.correo?.toLowerCase()))
+        );
+        if (filiales.length > 0) {
+          visibleClients = filiales;
+        }
+      }
+      setAllClientes(visibleClients);
 
       let activeClientId = overrideClientId || selectedClientId || user.clienteId || '';
-      let currentClient = clientsList.find(c => c.id === activeClientId) || null;
+      if (activeClientId === 'CLI-876' && visibleClients.length > 0) {
+        activeClientId = visibleClients[0].id;
+      }
+      let currentClient = visibleClients.find(c => c.id === activeClientId) || null;
 
       if (!currentClient) {
-        currentClient = clientsList.find(c => 
+        currentClient = visibleClients.find(c => 
           (c.correoContacto && user.correo && c.correoContacto.toLowerCase() === user.correo.toLowerCase()) ||
           (c.empresa && user.correo && user.correo.toLowerCase().split('@')[0].length > 2 && c.empresa.toLowerCase().includes(user.correo.toLowerCase().split('@')[0])) ||
           (c.empresa && user.nombre && user.nombre.length > 2 && c.empresa.toLowerCase().includes(user.nombre.toLowerCase().split(' ')[0]))
-        ) || (user.rol === 'supracliente' || user.rol === 'administrador' ? (clientsList[0] || null) : null);
+        ) || (visibleClients[0] || null);
 
         if (currentClient) {
           activeClientId = currentClient.id;
@@ -600,6 +621,7 @@ En fe de lo cual, firman las partes interesadas de conformidad.`;
           cargasSocialesMonto: talentCostEstimate.cargasSocialesMonto,
           feeServicioMonto: talentCostEstimate.feeServicioMonto,
           impuestosMonto: talentCostEstimate.impuestosMonto,
+          costoTotalTalento: talentCostEstimate.costoTotalTalento,
           costoTotal: talentCostEstimate.costoTotalTalento,
           desglose: talentCostEstimate.desglose,
           impuestosDetalle: talentCostEstimate.impuestosDetalle
@@ -1147,20 +1169,16 @@ Sonia Ortiz,sonia.ortiz@test.com,Project Manager,2026-07-10,35000,EUR,Incorrecto
             </h2>
             <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-1.5 flex-wrap mt-0.5">
               <span>{tText('Cliente Activo:', lang)}</span>
-              {allClientes.length > 0 ? (
-                <select
-                  value={selectedClientId || cliente?.id || ''}
-                  onChange={(e) => {
-                    const chosenId = e.target.value;
-                    setSelectedClientId(chosenId);
-                    loadData(chosenId);
+              {masterClientes.length > 0 ? (
+                <ClientFolderSelector
+                  clientes={masterClientes}
+                  selectedClientId={selectedClientId || cliente?.id || ''}
+                  onSelectClient={(chosen) => {
+                    setSelectedClientId(chosen.id);
+                    loadData(chosen.id);
                   }}
-                  className="bg-indigo-50/90 border border-indigo-200 text-indigo-950 font-bold text-xs px-2.5 py-1 rounded-xl cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500 shadow-3xs"
-                >
-                  {allClientes.map(c => (
-                    <option key={c.id} value={c.id}>{c.empresa} ({c.pais})</option>
-                  ))}
-                </select>
+                  lang={lang}
+                />
               ) : (
                 <strong className="text-slate-800 font-bold">{cliente?.empresa || user.nombre}</strong>
               )}

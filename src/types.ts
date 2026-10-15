@@ -268,9 +268,11 @@ export interface Trabajador {
     cargasSocialesMonto: number;
     feeServicioMonto: number;
     impuestosMonto: number;
-    costoTotal: number;
+    costoTotalTalento: number;
+    costoTotal?: number;
     desglose?: { concepto: string; porcentaje: number; monto: number }[];
     impuestosDetalle?: { concepto: string; monto: number }[];
+    [key: string]: any;
   };
   ultimaActualizacion: string;
   cargaMasivaId?: string;
@@ -1791,6 +1793,7 @@ export interface DatabaseSchema {
   tarifarios?: TarifarioEOR[];
   reglasTributarias?: ReglaTributariaIvaWht[];
   roles?: RoleDefinition[];
+  deletedIds?: string[];
 }
 
 export interface Traduccion {
